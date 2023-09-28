@@ -19,6 +19,8 @@ cd ./packages/libsodium-stable
 ./configure
 make && make check
 sudo make install
+cd ..
+cd ..
 
 cmake --build ./build
 

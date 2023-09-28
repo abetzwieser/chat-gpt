@@ -1,6 +1,6 @@
 #! /bin/bash
 # Generated automatically by config.status (libsodium) 1.0.19
-# Libtool was configured on host codespaces-16f806:
+# Libtool was configured on host codespaces-e5ad9c:
 # NOTE: Changes made to this file will be lost: look at ltmain.sh.
 
 # Provide generalized library-building support services.
