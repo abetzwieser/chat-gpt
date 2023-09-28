@@ -13,41 +13,13 @@ libsodium documentation:
 https://doc.libsodium.org/
 
 ////
-
-##setup procedure from a clean codespace:
-
-mkdir packages
-
-##drag libsodium-stable into packages 
-##[this may take a while]
+# what you have to do to make this run:
 
 cd ./packages/libsodium-stable
-
-chmod +x configure
 ./configure
 make && make check
 sudo make install
 
-cd ..
-cd ..
-
-mkdir CMake
-## drag FindSodium.cmake into CMake folder
-
-~~~~~
-###CMakeLists.txt edited to have AT LEAST the following:
-## set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/CMake)
-## find_package(Sodium)
-## target_link_libraries(project sodium)
-~~~~
-
-## make sure #include <sodium.h> is in top of file
-## make sure sodium_init() is run before calling other sodium stuff
-
-## sets up /build/ folder for cmake, only has to run once
-cmake -S . -B ./build 
-
-## actually does the compiling
 cmake --build ./build
 
 ./build/project
