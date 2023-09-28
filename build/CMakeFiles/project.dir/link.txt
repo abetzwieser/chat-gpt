@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/project.dir/code/test.cpp.o -o project  -Wl,-rpath,/usr/local/lib /usr/local/lib/libsodium.so 
