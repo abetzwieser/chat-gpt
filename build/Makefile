@@ -129,29 +129,29 @@ project/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/project.dir/build.make CMakeFiles/project.dir/build
 .PHONY : project/fast
 
-code/test.o: code/test.cpp.o
-.PHONY : code/test.o
+code/crypto.o: code/crypto.cpp.o
+.PHONY : code/crypto.o
 
 # target to build an object file
-code/test.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/project.dir/build.make CMakeFiles/project.dir/code/test.cpp.o
-.PHONY : code/test.cpp.o
+code/crypto.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/project.dir/build.make CMakeFiles/project.dir/code/crypto.cpp.o
+.PHONY : code/crypto.cpp.o
 
-code/test.i: code/test.cpp.i
-.PHONY : code/test.i
+code/crypto.i: code/crypto.cpp.i
+.PHONY : code/crypto.i
 
 # target to preprocess a source file
-code/test.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/project.dir/build.make CMakeFiles/project.dir/code/test.cpp.i
-.PHONY : code/test.cpp.i
+code/crypto.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/project.dir/build.make CMakeFiles/project.dir/code/crypto.cpp.i
+.PHONY : code/crypto.cpp.i
 
-code/test.s: code/test.cpp.s
-.PHONY : code/test.s
+code/crypto.s: code/crypto.cpp.s
+.PHONY : code/crypto.s
 
 # target to generate assembly for a file
-code/test.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/project.dir/build.make CMakeFiles/project.dir/code/test.cpp.s
-.PHONY : code/test.cpp.s
+code/crypto.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/project.dir/build.make CMakeFiles/project.dir/code/crypto.cpp.s
+.PHONY : code/crypto.cpp.s
 
 # Help Target
 help:
@@ -162,9 +162,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... project"
-	@echo "... code/test.o"
-	@echo "... code/test.i"
-	@echo "... code/test.s"
+	@echo "... code/crypto.o"
+	@echo "... code/crypto.i"
+	@echo "... code/crypto.s"
 .PHONY : help
 
 
