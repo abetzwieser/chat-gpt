@@ -73,15 +73,15 @@ CMakeFiles/project.dir/code/test.cpp.o: CMakeFiles/project.dir/flags.make
 CMakeFiles/project.dir/code/test.cpp.o: /workspaces/csc3380-fall-2023-project-group-16/code/test.cpp
 CMakeFiles/project.dir/code/test.cpp.o: CMakeFiles/project.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/csc3380-fall-2023-project-group-16/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/project.dir/code/test.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/project.dir/code/test.cpp.o -MF CMakeFiles/project.dir/code/test.cpp.o.d -o CMakeFiles/project.dir/code/test.cpp.o -c /workspaces/csc3380-fall-2023-project-group-16/code/test.cpp
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/project.dir/code/test.cpp.o -MF CMakeFiles/project.dir/code/test.cpp.o.d -o CMakeFiles/project.dir/code/test.cpp.o -c /workspaces/csc3380-fall-2023-project-group-16/code/test.cpp
 
 CMakeFiles/project.dir/code/test.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/project.dir/code/test.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /workspaces/csc3380-fall-2023-project-group-16/code/test.cpp > CMakeFiles/project.dir/code/test.cpp.i
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /workspaces/csc3380-fall-2023-project-group-16/code/test.cpp > CMakeFiles/project.dir/code/test.cpp.i
 
 CMakeFiles/project.dir/code/test.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/project.dir/code/test.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /workspaces/csc3380-fall-2023-project-group-16/code/test.cpp -o CMakeFiles/project.dir/code/test.cpp.s
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /workspaces/csc3380-fall-2023-project-group-16/code/test.cpp -o CMakeFiles/project.dir/code/test.cpp.s
 
 # Object files for target project
 project_OBJECTS = \

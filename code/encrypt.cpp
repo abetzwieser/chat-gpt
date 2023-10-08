@@ -20,6 +20,7 @@ int main() {
 	crypto_secretstream_xchacha20poly1305_state receiver_state;
 	crypto_secretstream_xchacha20poly1305_init_pull(&state, header, key);
 
+	//message encryption/decryption, needs testing and messing around with tags, tag final will probably not be used
 	while(true){
 		std::string input;
 		std::cout << "Enter and message: " << std::endl;
@@ -30,7 +31,7 @@ int main() {
 		unsigned char cipher[input.size() + crypto_secretstream_xchacha20poly1305_ABYTES];
 
 		unsigned char tag;
-		
+
 		crypto_secretstream_xchacha20poly1305_push(
 			&state, cipher, nullptr, 
 			reinterpret_cast<const unsigned char *>(input.c_str()), 
