@@ -1,8 +1,8 @@
 [
 {
   "directory": "/workspaces/csc3380-fall-2023-project-group-16/build",
-  "command": "/usr/bin/g++   -g -std=gnu++2a -o CMakeFiles/project.dir/code/test.cpp.o -c /workspaces/csc3380-fall-2023-project-group-16/code/test.cpp",
-  "file": "/workspaces/csc3380-fall-2023-project-group-16/code/test.cpp",
-  "output": "CMakeFiles/project.dir/code/test.cpp.o"
+  "command": "/usr/bin/g++   -g -std=gnu++2a -o CMakeFiles/project.dir/code/crypto.cpp.o -c /workspaces/csc3380-fall-2023-project-group-16/code/crypto.cpp",
+  "file": "/workspaces/csc3380-fall-2023-project-group-16/code/crypto.cpp",
+  "output": "CMakeFiles/project.dir/code/crypto.cpp.o"
 }
 ]

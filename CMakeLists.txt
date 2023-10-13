@@ -5,7 +5,8 @@ project(fall2023-csc3380-project)
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(project 
-code/test.cpp
+code/crypto.cpp
+#code/test.cpp
 #code/project.cpp
 #code/etc.cpp
 )
