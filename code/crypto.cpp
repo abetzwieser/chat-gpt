@@ -26,7 +26,7 @@ unsigned char salt[] = {"this is salt"};
 // optionally one day make a salt-making function:
 //randombytes_buf(salt, sizeof salt); // create unique random salt
 
-// this uses argon2id. key comes out in base64.
+//this uses argon2id. key comes out in base64.
 void generate_key(const char* user_password, unsigned char* salt){  // generates secret key given user_password and salt
   if (crypto_pwhash 
     (masterkey, sizeof masterkey, user_password, strlen(user_password), salt,
@@ -42,6 +42,7 @@ void generate_key(const char* user_password, unsigned char* salt){  // generates
   //       printf("%x",public_key[i]); // prints as hex, only for testing, delete later
   //       //std::cout << std::bitset<6>(public_key[i]) << "\n";
   //   }
+  
 }
 
 
