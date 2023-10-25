@@ -8,6 +8,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
+// to build: g++ chat_client.cpp -o chat_client -L /usr/lib/ -pthread
+
 #include <cstdlib>
 #include <deque>
 #include <iostream>
@@ -76,6 +78,7 @@ private:
   {
     if (!error)
     {
+      // have to decrypt message first (if it is an encrypted message)
       std::cout.write(read_msg_.body(), read_msg_.body_length());
       std::cout << "\n";
       asio::async_read(socket_,
@@ -91,6 +94,7 @@ private:
 
   void do_write(chat_message msg)
   {
+    // have to encrypt message with all held public keys
     bool write_in_progress = !write_msgs_.empty();
     write_msgs_.push_back(msg);
     if (!write_in_progress)
@@ -133,6 +137,10 @@ private:
   tcp::socket socket_;
   chat_message read_msg_;
   chat_message_queue write_msgs_;
+  char* private_key_;
+  std::map<char*, char*> key_list_;
+  // user, pk
+  // take in user + public key initially as chat_message
 };
 
 int main(int argc, char* argv[])
@@ -153,12 +161,37 @@ int main(int argc, char* argv[])
     chat_client c(io_context, endpoints);
 
     asio::thread t(boost::bind(&asio::io_context::run, &io_context));
+    // alternatively put generation of key + username
+    // + send to server
+    // here
+
+    // prompt user
+    // for username + pw
+    // need creation of user...? -> server-side
+    /*
+    
+    chat_message msg;
+    msg.body_length(strlen(line));
+    memcpy(msg.body(), line, msg.body_length());
+    msg.encode_header();
+    c.write(msg);
+    */
+    char user[chat_message::username_length + 1];
+    std::cout << "What is your username? (max of 16 characters)\n";
+    std::cin.getline(user, chat_message::username_length + 1);
+
+    chat_message user_info;
+    user_info.body_length(strlen(user));
+    memcpy(user_info.body(), user, user_info.body_length());
+    user_info.encode_header();
+    c.write(user_info);
 
     char line[chat_message::max_body_length + 1];
     while (std::cin.getline(line, chat_message::max_body_length + 1))
     {
       using namespace std; // For strlen and memcpy.
       chat_message msg;
+      // encrypt line
       msg.body_length(strlen(line));
       memcpy(msg.body(), line, msg.body_length());
       msg.encode_header();

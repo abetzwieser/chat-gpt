@@ -8,6 +8,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
+// to build: g++ chat_server.cpp -o chat_server -L /usr/lib/ -pthread
+
 #include <algorithm>
 #include <cstdlib>
 #include <deque>
@@ -45,15 +47,32 @@ public:
   void join(chat_participant_ptr participant)
   {
     participants_.insert(participant);
+    // insert participant into database
+    // with user + public key
+    // how to get public key...
+    // database.insert(participant.get_user(), public key) or sth
   }
 
   void leave(chat_participant_ptr participant)
   {
     participants_.erase(participant);
+    // delete participant from database
+    // database.delete(participant) or sth
   }
 
   void deliver(const chat_message& msg)
   {
+    // change to take in user parameter as well
+
+    /*
+    * for (auto& participant : participants)
+    * {
+    *   if (participants.get_user() == user)
+    *     boost::bind(&chat_participant::deliver,
+    *       boost::placeholders::_1, boost::ref(msg)));
+    * }
+    */
+
     std::for_each(participants_.begin(), participants_.end(),
         boost::bind(&chat_participant::deliver,
           boost::placeholders::_1, boost::ref(msg)));
@@ -107,6 +126,8 @@ public:
 
   void handle_read_header(const asio::error_code& error)
   {
+    // modify to pass on decoded user from header
+    // identifies type of message - including verification request!
     if (!error && read_msg_.decode_header())
     {
       asio::async_read(socket_,
@@ -120,17 +141,33 @@ public:
     }
   }
 
+  // modify function to take in user from header
   void handle_read_body(const asio::error_code& error)
   {
     if (!error)
     {
       // once you read in the message from the connection
       // send it to the whole room
-      room_.deliver(read_msg_);
-      asio::async_read(socket_,
+      // room_.deliver(read_msg_, user_)
+      if (!first_msg_)
+      {
+        room_.deliver(read_msg_);
+        asio::async_read(socket_,
           asio::buffer(read_msg_.data(), chat_message::header_length),
           boost::bind(&chat_session::handle_read_header, shared_from_this(),
             asio::placeholders::error));
+      }
+      else
+      {
+        first_msg_ = false;
+        set_user(read_msg_.body());
+        std::cout << "User: " << user_ << " has connected." << std::endl;
+        asio::async_read(socket_,
+          asio::buffer(read_msg_.data(), chat_message::header_length),
+          boost::bind(&chat_session::handle_read_header, shared_from_this(),
+            asio::placeholders::error));
+      }
+      
     }
     else
     {
@@ -158,11 +195,23 @@ public:
     }
   }
 
+  void set_user(char* user)
+  {
+    user_ = user;
+  }
+
+  char* get_user()
+  {
+    return user_;
+  }
+
 private:
   tcp::socket socket_;
   chat_room& room_;
   chat_message read_msg_;
   chat_message_queue write_msgs_;
+  char* user_;
+  bool first_msg_ = true;
 };
 
 typedef boost::shared_ptr<chat_session> chat_session_ptr;
