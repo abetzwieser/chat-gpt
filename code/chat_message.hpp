@@ -22,6 +22,7 @@ public:
   {
     header_length = 4, // header tracks actual body length
     username_length = 16,
+    key_length = 1,
     // username_header_length = 2,
     max_body_length = 512
   };
@@ -45,21 +46,21 @@ public:
   {
     // og
     // return header_length + body_length_;
-    return header_length + username_length + body_length_;
+    return header_length + username_length + key_length + body_length_;
   }
 
   const char* body() const
   {
     // og
     // return data_ + header_length;
-    return data_ + username_length + header_length;
+    return data_ + key_length + username_length + header_length;
   }
 
   char* body()
   {
     // og
     // return data_ + header_length;
-    return data_ + username_length + header_length;
+    return data_ + key_length + username_length + header_length;
   }
 
   size_t body_length() const
@@ -92,21 +93,9 @@ public:
   {
     using namespace std; // For sprintf and memcpy.
     char header[header_length + 1] = ""; // +1 for terminating null character
-    // og
-    // sprintf(header, "%4d", static_cast<int>(body_length_));
     sprintf(header, "%4d", static_cast<int>(body_length_));
     memcpy(data_, header, header_length);
   }
-
-  /*
-  void encode_username_header()
-  {
-    using namespace std;
-    char username_header[username_header_length + 1] = "";
-    sprintf(username_header, "%2d", username_header_length);
-    memcpy(data_, username_header, username_header_length);
-  }
-  */
 
   void encode_username(char* const user)
   {
@@ -116,11 +105,35 @@ public:
     memcpy(data_, username, username_length);
   }
 
+  bool has_key() const
+  {
+    return key_signal_;
+  }
 
-  void set_has_key(bool has_key)
+  void decode_key()
+  {
+    // based off of decode header
+    // decode key, then store result in a variable
+    // while also returning true/false
+    using namespace std; // For strncat and atoi.
+    char key_byte[key_length + 1] = "";
+    strncat(key_byte, data_, key_length);
+    int key_signal = atoi(key_byte);
+    if (key_signal == 1)
+    {
+      key_signal_ = true;
+    }
+    else
+    {
+      key_signal_ = false;
+    }
+    // change this later...
+  }
+
+  void encode_key(bool has_key)
   {
     using namespace std;
-    char key[2] = "";
+    char key[key_length + 1] = "";
     if (has_key) // byte = 1 signals message contains public key
     {
       sprintf(key, "%1d", 1);
@@ -130,12 +143,14 @@ public:
       sprintf(key, "%1d", 0);
     }
 
-    memcpy(data_, key, 2);
+    memcpy(data_, key, key_length);
   }
 
 private:
-  char data_[header_length + username_length + max_body_length];
+  char data_[header_length + username_length + key_length + max_body_length];
   size_t body_length_;
+  bool key_signal_;
+
 };
 
 #endif // CHAT_MESSAGE_HPP

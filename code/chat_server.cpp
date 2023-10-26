@@ -62,7 +62,11 @@ public:
 
   void deliver(const chat_message& msg)
   {
-    // change to take in user parameter as well
+    // depending on whether has_key is set or not
+    // not set -> deliver to entire room
+    //   ***EXCEPT FOR THE USER THAT SENT IT***
+    // set -> deliver to one participant
+    // if msg.
 
     /* if msg.decode-key == false; (doesn't have key to transmit)
     * for (auto& participant : participants)
@@ -127,16 +131,8 @@ public:
 
   void handle_read_header(const asio::error_code& error)
   {
-    // og stuff
-    // if (!error && msg.decode_header())
     if (!error)
     {
-      /* og stuff
-      asio::async_read(socket_,
-          asio::buffer(read_msg_.body(), read_msg_.body_length()),
-          boost::bind(&chat_session::handle_read_body, shared_from_this(),
-            asio::placeholders::error));
-      */\
       asio::async_read(socket_,
           asio::buffer(read_msg_.data(), chat_message::username_length),
           boost::bind(&chat_session::handle_read_username, shared_from_this(),
@@ -164,9 +160,33 @@ public:
       }
         
       asio::async_read(socket_,
+        asio::buffer(read_msg_.data(), chat_message::key_length),
+        boost::bind(&chat_session::handle_read_key, shared_from_this(),
+          asio::placeholders::error));
+    }
+  }
+
+  void handle_read_key(const asio::error_code& error)
+  {
+    if (!error)
+    {
+      read_msg_.decode_key();
+      if(read_msg_.has_key())
+      {
+        std::cout << "Success! User has key!" << std::endl;
+      }
+      else{
+        std::cout << "Welp, gotta try again." << std::endl;
+      }
+
+      asio::async_read(socket_,
         asio::buffer(read_msg_.body(), read_msg_.body_length()),
         boost::bind(&chat_session::handle_read_body, shared_from_this(),
           asio::placeholders::error));
+    }
+    else
+    {
+      room_.leave(shared_from_this());
     }
   }
 
@@ -175,18 +195,6 @@ public:
   {
     if (!error)
     {
-      /*
-      if (!first_msg_)
-      {
-        room_.deliver(read_msg_);
-      }
-      else // get username (first message)
-      {
-        first_msg_ = false;
-        set_user(read_msg_.body());
-        std::cout << "User: " << user_ << " has connected." << std::endl;
-      }
-      */
       asio::async_read(socket_,
           asio::buffer(read_msg_.data(), chat_message::header_length),
           boost::bind(&chat_session::handle_read_header, shared_from_this(),

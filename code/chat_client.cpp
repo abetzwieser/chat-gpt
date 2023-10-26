@@ -174,11 +174,8 @@ int main(int argc, char* argv[])
     std::cin.getline(user, chat_message::username_length + 1);
 
     chat_message user_info;
+    user_info.encode_key(true);
     user_info.encode_username(user);
-    /*
-    user_info.body_length(strlen(user));
-    memcpy(user_info.body(), user, user_info.body_length());
-    */
     user_info.encode_header();
     c.write(user_info);
 
