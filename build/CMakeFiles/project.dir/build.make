@@ -73,15 +73,15 @@ CMakeFiles/project.dir/code/crypto.cpp.o: CMakeFiles/project.dir/flags.make
 CMakeFiles/project.dir/code/crypto.cpp.o: /workspaces/csc3380-fall-2023-project-group-16/code/crypto.cpp
 CMakeFiles/project.dir/code/crypto.cpp.o: CMakeFiles/project.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/csc3380-fall-2023-project-group-16/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/project.dir/code/crypto.cpp.o"
-	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/project.dir/code/crypto.cpp.o -MF CMakeFiles/project.dir/code/crypto.cpp.o.d -o CMakeFiles/project.dir/code/crypto.cpp.o -c /workspaces/csc3380-fall-2023-project-group-16/code/crypto.cpp
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/project.dir/code/crypto.cpp.o -MF CMakeFiles/project.dir/code/crypto.cpp.o.d -o CMakeFiles/project.dir/code/crypto.cpp.o -c /workspaces/csc3380-fall-2023-project-group-16/code/crypto.cpp
 
 CMakeFiles/project.dir/code/crypto.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/project.dir/code/crypto.cpp.i"
-	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /workspaces/csc3380-fall-2023-project-group-16/code/crypto.cpp > CMakeFiles/project.dir/code/crypto.cpp.i
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /workspaces/csc3380-fall-2023-project-group-16/code/crypto.cpp > CMakeFiles/project.dir/code/crypto.cpp.i
 
 CMakeFiles/project.dir/code/crypto.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/project.dir/code/crypto.cpp.s"
-	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /workspaces/csc3380-fall-2023-project-group-16/code/crypto.cpp -o CMakeFiles/project.dir/code/crypto.cpp.s
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /workspaces/csc3380-fall-2023-project-group-16/code/crypto.cpp -o CMakeFiles/project.dir/code/crypto.cpp.s
 
 # Object files for target project
 project_OBJECTS = \
@@ -92,7 +92,7 @@ project_EXTERNAL_OBJECTS =
 
 project: CMakeFiles/project.dir/code/crypto.cpp.o
 project: CMakeFiles/project.dir/build.make
-project: /usr/local/lib/libsodium.so
+project: /usr/lib/x86_64-linux-gnu/libsodium.so
 project: CMakeFiles/project.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/workspaces/csc3380-fall-2023-project-group-16/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable project"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/project.dir/link.txt --verbose=$(VERBOSE)
