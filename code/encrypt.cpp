@@ -31,10 +31,7 @@ int main() {
         if (input.empty()) {
             break;
         }
-/*
-        //prints confirmation of input message
-        std::cout << "This is the message to encrypt: " << input << std::endl;
-*/
+
         unsigned char cipher[input.size() + crypto_secretstream_xchacha20poly1305_ABYTES];
 
         unsigned char tag;
@@ -45,14 +42,7 @@ int main() {
             input.size(), nullptr, 0,
             crypto_secretstream_xchacha20poly1305_TAG_FINAL
         );
-/*
-        // prints encrypted message
-        std::cout << "Encrypted format: ";
-        for (size_t i = 0; i < sizeof(cipher); ++i) {
-            std::cout << std::hex << static_cast<int>(cipher[i]);
-        }
-        std::cout << std::endl;
-*/
+
 		//store decrypted message
         unsigned char decrypted[input.size()];
 		//pull from stream, updating receiver state
@@ -62,16 +52,6 @@ int main() {
             input.size() + crypto_secretstream_xchacha20poly1305_ABYTES,
             nullptr, 0
         );
-/*
-        //print decrypted
-        std::cout << "Decrypted: ";
-        for (size_t i = 0; i < sizeof(decrypted); ++i) {
-            std::cout << decrypted[i];
-        }
-        std::cout << std::endl;
-*/
-
     }
-
     return 0;
 }
