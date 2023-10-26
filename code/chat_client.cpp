@@ -138,6 +138,7 @@ private:
   chat_message read_msg_;
   chat_message_queue write_msgs_;
   char* private_key_;
+  std::vector<char*> test_key_list_;
   std::map<char*, char*> key_list_;
   // user, pk
   // take in user + public key initially as chat_message
@@ -168,21 +169,16 @@ int main(int argc, char* argv[])
     // prompt user
     // for username + pw
     // need creation of user...? -> server-side
-    /*
-    
-    chat_message msg;
-    msg.body_length(strlen(line));
-    memcpy(msg.body(), line, msg.body_length());
-    msg.encode_header();
-    c.write(msg);
-    */
     char user[chat_message::username_length + 1];
     std::cout << "What is your username? (max of 16 characters)\n";
     std::cin.getline(user, chat_message::username_length + 1);
 
     chat_message user_info;
+    user_info.encode_username(user);
+    /*
     user_info.body_length(strlen(user));
     memcpy(user_info.body(), user, user_info.body_length());
+    */
     user_info.encode_header();
     c.write(user_info);
 
