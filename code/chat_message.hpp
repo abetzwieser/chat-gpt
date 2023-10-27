@@ -20,10 +20,9 @@ class chat_message
 public:
   enum
   {
-    header_length = 4, // header tracks actual body length
+    header_length = 4,
     username_length = 16,
-    key_length = 1,
-    // username_header_length = 2,
+    key_length = 4,
     max_body_length = 512
   };
 
@@ -94,7 +93,7 @@ public:
     using namespace std; // For sprintf and memcpy.
     char header[header_length + 1] = ""; // +1 for terminating null character
     sprintf(header, "%4d", static_cast<int>(body_length_));
-    memcpy(data_, header, header_length);
+    memcpy(data_ + key_length + username_length, header, header_length);
   }
 
   void encode_username(char* const user)
@@ -102,7 +101,7 @@ public:
     using namespace std;
     char username[username_length + 1] = "";
     sprintf(username, "%16s", user);
-    memcpy(data_, username, username_length);
+    memcpy(data_ + key_length, username, username_length);
   }
 
   bool has_key() const
@@ -127,7 +126,6 @@ public:
     {
       key_signal_ = false;
     }
-    // change this later...
   }
 
   void encode_key(bool has_key)
@@ -136,11 +134,11 @@ public:
     char key[key_length + 1] = "";
     if (has_key) // byte = 1 signals message contains public key
     {
-      sprintf(key, "%1d", 1);
+      sprintf(key, "%4d", 1);
     }
     else // byte = 0 signals message doesn't contain public key
     {
-      sprintf(key, "%1d", 0);
+      sprintf(key, "%4d", 0);
     }
 
     memcpy(data_, key, key_length);

@@ -175,8 +175,12 @@ int main(int argc, char* argv[])
 
     chat_message user_info;
     user_info.encode_key(true);
+    std::cout << "user_info.data() is currently" << user_info.data() << "end" << std::endl;
     user_info.encode_username(user);
+    std::cout << "user_info.data() is currently" << user_info.data() << "end" << std::endl;
     user_info.encode_header();
+    std::cout << "user_info.data() is currently" << user_info.data() << "end" << std::endl;
+
     c.write(user_info);
 
     char line[chat_message::max_body_length + 1];
