@@ -109,9 +109,9 @@ public:
   {
     room_.join(shared_from_this());
     asio::async_read(socket_,
-        asio::buffer(read_msg_.data(), chat_message::header_length),
+        asio::buffer(read_msg_.data(), chat_message::key_length),
         boost::bind(
-          &chat_session::handle_read_header, shared_from_this(),
+          &chat_session::handle_read_key, shared_from_this(),
           asio::placeholders::error));
   }
 
@@ -131,12 +131,13 @@ public:
 
   void handle_read_header(const asio::error_code& error)
   {
+    std::cout << "read_msg_.data() arrives in read_header: " << read_msg_.data() << std::endl;
     if (!error)
     {
       asio::async_read(socket_,
-          asio::buffer(read_msg_.data(), chat_message::username_length),
-          boost::bind(&chat_session::handle_read_username, shared_from_this(),
-            asio::placeholders::error));
+        asio::buffer(read_msg_.data(), read_msg_.body_length()),
+        boost::bind(&chat_session::handle_read_body, shared_from_this(),
+          asio::placeholders::error));
     }
     else
     {
@@ -146,6 +147,7 @@ public:
 
   void handle_read_username(const asio::error_code& error)
   {
+    std::cout << "read_msg_.data() arrives in read_username: " << read_msg_.data() << std::endl;
     if (!error && read_msg_.decode_header())
     {
       if (!first_msg_)
@@ -160,14 +162,16 @@ public:
       }
         
       asio::async_read(socket_,
-        asio::buffer(read_msg_.data(), chat_message::key_length),
-        boost::bind(&chat_session::handle_read_key, shared_from_this(),
+        asio::buffer(read_msg_.body(), chat_message::header_length),
+        boost::bind(&chat_session::handle_read_header, shared_from_this(),
           asio::placeholders::error));
+      
     }
   }
 
   void handle_read_key(const asio::error_code& error)
   {
+    std::cout << "read_msg_.data() arrives in read_key: " << read_msg_.data() << std::endl;
     if (!error)
     {
       read_msg_.decode_key();
@@ -179,10 +183,13 @@ public:
         std::cout << "Welp, gotta try again." << std::endl;
       }
 
+      
+
       asio::async_read(socket_,
-        asio::buffer(read_msg_.body(), read_msg_.body_length()),
-        boost::bind(&chat_session::handle_read_body, shared_from_this(),
-          asio::placeholders::error));
+          asio::buffer(read_msg_.data(), chat_message::username_length),
+          boost::bind(&chat_session::handle_read_username, shared_from_this(),
+            asio::placeholders::error));
+
     }
     else
     {
