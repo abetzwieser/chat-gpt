@@ -160,9 +160,9 @@ public:
         set_user(read_msg_.data());
         std::cout << "User: " << user_ << " has connected." << std::endl;
       }
-        
+
       asio::async_read(socket_,
-        asio::buffer(read_msg_.body(), chat_message::header_length),
+        asio::buffer(read_msg_.data(), chat_message::header_length),
         boost::bind(&chat_session::handle_read_header, shared_from_this(),
           asio::placeholders::error));
       
