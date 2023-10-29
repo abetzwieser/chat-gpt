@@ -203,8 +203,8 @@ public:
     if (!error)
     {
       asio::async_read(socket_,
-          asio::buffer(read_msg_.data(), chat_message::header_length),
-          boost::bind(&chat_session::handle_read_header, shared_from_this(),
+          asio::buffer(read_msg_.data(), chat_message::key_length),
+          boost::bind(&chat_session::handle_read_key, shared_from_this(),
             asio::placeholders::error));
       
     }
