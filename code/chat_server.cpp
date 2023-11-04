@@ -47,10 +47,11 @@ public:
   void join(chat_participant_ptr participant)
   {
     participants_.insert(participant);
-    // insert participant into database
-    // with user + public key
-    // how to get public key...
-    // database.insert(participant.get_user(), public key) or sth
+  }
+
+  void add_user(const char* name, chat_participant_ptr participant)
+  {
+    users_.insert({name, participant});
   }
 
   void leave(chat_participant_ptr participant)
@@ -66,25 +67,29 @@ public:
     // not set -> deliver to entire room
     //   ***EXCEPT FOR THE USER THAT SENT IT***
     // set -> deliver to one participant
-    // if msg.
-
-    /* if msg.decode-key == false; (doesn't have key to transmit)
-    * for (auto& participant : participants)
-    * {
-    *   if (participants.get_user() == msg.decode_username())
-    *     boost::bind(&chat_participant::deliver,
-    *       boost::placeholders::_1, boost::ref(msg)));
-    * }
-    */
-
-    // else
+    if (msg.has_key())
+    {
+      // has to NOT send to user that sent it; aka have to look at
+      // the username stored in the message
     std::for_each(participants_.begin(), participants_.end(),
         boost::bind(&chat_participant::deliver,
           boost::placeholders::_1, boost::ref(msg)));
+    }
+    else
+    {
+      // don't know if i need to convert the char[] -> std::string?
+      auto it = users_.find(msg.username());
+      if (it != users_.end())
+      {
+        boost::bind(&chat_participant::deliver, &it,
+          boost::placeholders::_1, boost::ref(msg));
+      }
+    }
   }
 
 private:
   std::set<chat_participant_ptr> participants_;
+  std::map<std::string, chat_participant_ptr> users_;
 };
 
 //----------------------------------------------------------------------
@@ -117,6 +122,8 @@ public:
 
   void deliver(const chat_message& msg)
   {
+    // have to modify this so other clients can receive the full
+    // message encoding... i think
     bool write_in_progress = !write_msgs_.empty();
     write_msgs_.push_back(msg);
     if (!write_in_progress)
@@ -150,16 +157,17 @@ public:
     std::cout << "read_msg_.data() arrives in read_username: " << read_msg_.data() << std::endl;
     if (!error && read_msg_.decode_header())
     {
-      if (!first_msg_)
-      {
-        room_.deliver(read_msg_);
-      }
-      else
+      if (first_msg_)
       {
         first_msg_ = false;
-        set_user(read_msg_.data());
+        read_msg_.decode_username();
+        set_user(read_msg_.username());
+
+        room_.add_user(user_, shared_from_this());
         std::cout << "User: " << user_ << " has connected." << std::endl;
       }
+
+      read_msg_.decode_username();
 
       asio::async_read(socket_,
         asio::buffer(read_msg_.data(), chat_message::header_length),
@@ -175,15 +183,6 @@ public:
     if (!error)
     {
       read_msg_.decode_key();
-      if(read_msg_.has_key())
-      {
-        std::cout << "Success! User has key!" << std::endl;
-      }
-      else{
-        std::cout << "Welp, gotta try again." << std::endl;
-      }
-
-      
 
       asio::async_read(socket_,
           asio::buffer(read_msg_.data(), chat_message::username_length),
@@ -197,16 +196,15 @@ public:
     }
   }
 
-  // modify function to take in user from header
   void handle_read_body(const asio::error_code& error)
   {
     if (!error)
     {
+      room_.deliver(read_msg_);
       asio::async_read(socket_,
           asio::buffer(read_msg_.data(), chat_message::key_length),
           boost::bind(&chat_session::handle_read_key, shared_from_this(),
             asio::placeholders::error));
-      
     }
     else
     {
@@ -238,12 +236,7 @@ public:
   {
     user_ = user;
   }
-
-  char* get_user()
-  {
-    return user_;
-  }
-
+  
 private:
   tcp::socket socket_;
   chat_room& room_;

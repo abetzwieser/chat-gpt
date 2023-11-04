@@ -96,6 +96,24 @@ public:
     memcpy(data_ + key_length + username_length, header, header_length);
   }
 
+  const char* username() const
+  {
+    return username_;
+  }
+
+  char* username()
+  {
+    return username_;
+  }
+
+  void decode_username()
+  {
+    using namespace std;
+    char username[username_length + 1] = "";
+    strncat(username, data_, username_length);
+    memcpy(username_, username, username_length);
+  }
+
   void encode_username(char* const user)
   {
     using namespace std;
@@ -147,6 +165,7 @@ public:
 private:
   char data_[header_length + username_length + key_length + max_body_length];
   size_t body_length_;
+  char username_[username_length];
   bool key_signal_;
 
 };
