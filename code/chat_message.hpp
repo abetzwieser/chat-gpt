@@ -88,12 +88,13 @@ public:
     return true;
   }
 
+
   void encode_header()
   {
     using namespace std; // For sprintf and memcpy.
     char header[header_length + 1] = ""; // +1 for terminating null character
     sprintf(header, "%4d", static_cast<int>(body_length_));
-    memcpy(data_ + key_length + username_length, header, header_length);
+    memcpy(data_, header, header_length);
   }
 
   const char* username() const
@@ -110,7 +111,7 @@ public:
   {
     using namespace std;
     char username[username_length + 1] = "";
-    strncat(username, data_, username_length);
+    strncat(username, data_ + key_length, username_length);
     memcpy(username_, username, username_length);
   }
 
@@ -119,7 +120,7 @@ public:
     using namespace std;
     char username[username_length + 1] = "";
     sprintf(username, "%16s", user);
-    memcpy(data_ + key_length, username, username_length);
+    memcpy(data_ + header_length + key_length, username, username_length);
   }
 
   bool has_key() const
@@ -159,7 +160,7 @@ public:
       sprintf(key, "%4d", 0);
     }
 
-    memcpy(data_, key, key_length);
+    memcpy(data_ + header_length, key, key_length);
   }
 
 private:

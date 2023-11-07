@@ -61,6 +61,14 @@ private:
 
   void handle_read_header(const asio::error_code& error)
   {
+    // if (read_msg_.decode_header())
+    // {
+    //   std::cout << "header decoded!" << std::endl;
+    //   std::cout << "read_msg_.data() contains: " << read_msg_.data() << std::endl;
+    // }
+    // else{
+    //   std::cout << "header NOT decoded..." << std::endl;
+    // }
     if (!error && read_msg_.decode_header())
     {
       asio::async_read(socket_,
@@ -175,11 +183,18 @@ int main(int argc, char* argv[])
 
     chat_message user_info;
     user_info.encode_key(true);
-    std::cout << "user_info.data() is currently" << user_info.data() << "end" << std::endl;
+    // std::cout << "user_info.data() is currently" << user_info.data() << "end" << std::endl;
     user_info.encode_username(user);
-    std::cout << "user_info.data() is currently" << user_info.data() << "end" << std::endl;
+    // std::cout << "user_info.data() is currently" << user_info.data() << "end" << std::endl;
+    char temp_text[5] = "haha";
+    user_info.body_length(strlen(temp_text));
+    memcpy(user_info.body(), temp_text, user_info.body_length());
+    
     user_info.encode_header();
     std::cout << "user_info.data() is currently" << user_info.data() << "end" << std::endl;
+    
+    
+
 
     c.write(user_info);
 
