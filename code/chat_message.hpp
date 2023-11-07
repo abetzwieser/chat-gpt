@@ -112,6 +112,8 @@ public:
     using namespace std;
     char username[username_length + 1] = "";
     strncat(username, data_ + key_length, username_length);
+    // removing whitespaces from the username
+    std::remove(username, username + strlen(username) + 1, ' ');
     memcpy(username_, username, username_length);
   }
 
