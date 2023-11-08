@@ -61,18 +61,10 @@ private:
 
   void handle_read_header(const asio::error_code& error)
   {
-    // if (read_msg_.decode_header())
-    // {
-    //   std::cout << "header decoded!" << std::endl;
-    //   std::cout << "read_msg_.data() contains: " << read_msg_.data() << std::endl;
-    // }
-    // else{
-    //   std::cout << "header NOT decoded..." << std::endl;
-    // }
     if (!error && read_msg_.decode_header())
     {
       asio::async_read(socket_,
-          asio::buffer(read_msg_.body(), read_msg_.body_length()),
+          asio::buffer(read_msg_.body(), read_msg_.body_length() + chat_message::key_length + chat_message::username_length),
           boost::bind(&chat_client::handle_read_body, this,
             asio::placeholders::error));
     }
@@ -86,8 +78,28 @@ private:
   {
     if (!error)
     {
+      read_msg_.decode_key_client();
+      read_msg_.decode_username_client();
+
+      if(read_msg_.has_key())
+      {
+        std::cout << "message has key" << std::endl;
+      }
+      else
+      { 
+        std::cout << "message does not have key" << std::endl;
+      }
+
+      std::cout << "read_msg_.data() has: " << read_msg_.data() << std::endl;
+      std::cout << "read_msg_.body() has: " << read_msg_.body() << std::endl;
+
+      std::cout << "Username is: " << read_msg_.username() << std::endl;
+
+      // std::cout << "THIS IS THE RECEIVED DATA (handle_body):" << read_msg_.data() << std::endl;
+      // std::cout << "THIS IS THE RECEIVED BODY (handle_body):" << read_msg_.body() << std::endl;
+
       // have to decrypt message first (if it is an encrypted message)
-      std::cout.write(read_msg_.body(), read_msg_.body_length());
+      std::cout.write(read_msg_.body(), read_msg_.body_length() + chat_message::key_length + chat_message::username_length);
       std::cout << "\n";
       asio::async_read(socket_,
           asio::buffer(read_msg_.data(), chat_message::header_length),

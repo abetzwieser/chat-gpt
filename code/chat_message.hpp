@@ -45,21 +45,21 @@ public:
   {
     // og
     // return header_length + body_length_;
-    return header_length + username_length + key_length + body_length_;
+    return header_length + key_length + username_length + body_length_;
   }
 
   const char* body() const
   {
     // og
     // return data_ + header_length;
-    return data_ + key_length + username_length + header_length;
+    return data_ + header_length + key_length + username_length;
   }
 
   char* body()
   {
     // og
     // return data_ + header_length;
-    return data_ + key_length + username_length + header_length;
+    return data_ + header_length + key_length + username_length;
   }
 
   size_t body_length() const
@@ -111,6 +111,16 @@ public:
   {
     using namespace std;
     char username[username_length + 1] = "";
+    strncat(username, data_ + header_length + key_length, username_length);
+    // removing whitespaces from the username
+    std::remove(username, username + strlen(username) + 1, ' ');
+    memcpy(username_, username, username_length);
+  }
+
+  void decode_username_client()
+  {
+    using namespace std;
+    char username[username_length + 1] = "";
     strncat(username, data_ + key_length, username_length);
     // removing whitespaces from the username
     std::remove(username, username + strlen(username) + 1, ' ');
@@ -137,8 +147,43 @@ public:
     // while also returning true/false
     using namespace std; // For strncat and atoi.
     char key_byte[key_length + 1] = "";
-    strncat(key_byte, data_, key_length);
+    strncat(key_byte, data_ + header_length, key_length);
     int key_signal = atoi(key_byte);
+    std::cout << "\npublic key:\n";
+    //auto temp = *key_byte;
+   // std::cout << temp.size() << std::endl;
+    for(int i = 0; i < 6; ++i)
+    {
+        printf("%x", key_byte[i]); // prints as hex, only for testing, delete later
+        //std::cout << std::bitset<6>(public_key[i]) << "\n";
+    }
+    if (key_signal == 1)
+    {
+      key_signal_ = true;
+    }
+    else
+    {
+      key_signal_ = false;
+    }
+  }
+
+  void decode_key_client()
+  {
+    using namespace std; // For strncat and atoi.
+    char key_byte[key_length + 1] = "";
+    strncat(key_byte, data_ + header_length, key_length + 1);
+    std::cout << data_[8] << std::endl;
+    int key_signal = atoi(key_byte);
+
+    std::cout << "key signal:" << key_signal << std::endl;
+    std::cout << "\npublic key:\n";
+    //auto temp = *key_byte;
+   // std::cout << temp.size() << std::endl;
+    for(int i = 0; i < 6; ++i)
+    {
+        printf("%x", key_byte[i]); // prints as hex, only for testing, delete later
+        //std::cout << std::bitset<6>(public_key[i]) << "\n";
+    }
     if (key_signal == 1)
     {
       key_signal_ = true;

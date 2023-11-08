@@ -129,11 +129,10 @@ public:
 
   void deliver(const chat_message& msg)
   {
-    // have to modify this so other clients can receive the full
-    // message encoding... i think
     std::cout << "read_msg_.data() arrives in deliver (chat_session): " << msg.data() << std::endl;
     bool write_in_progress = !write_msgs_.empty();
     write_msgs_.push_back(msg);
+    std::cout << "write_msgs_.front().data() is: " << write_msgs_.front().data() << std::endl;
     if (!write_in_progress)
     {
       asio::async_write(socket_,
@@ -151,7 +150,7 @@ public:
     {
 
       asio::async_read(socket_,
-        asio::buffer(read_msg_.data(), chat_message::key_length + chat_message::username_length + read_msg_.body_length()),
+        asio::buffer(read_msg_.data() + chat_message::header_length, chat_message::key_length + chat_message::username_length + read_msg_.body_length()), // should really edit how body_length is stored later
         boost::bind(&chat_session::handle_read_body, shared_from_this(),
           asio::placeholders::error));
     }
@@ -196,7 +195,7 @@ public:
   {
     if (!error)
     {
-      write_msgs_.pop_front();
+      write_msgs_.pop_front(); // remove whatever message that was just sent from queue
       if (!write_msgs_.empty())
       {
         asio::async_write(socket_,
