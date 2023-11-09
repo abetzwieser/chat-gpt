@@ -63,10 +63,15 @@ private:
   {
     if (!error && read_msg_.decode_header())
     {
+      // asio::async_read(socket_,
+      //     asio::buffer(read_msg_.body(), read_msg_.body_length() + chat_message::key_length + chat_message::username_length),
+      //     boost::bind(&chat_client::handle_read_body, this,
+      //       asio::placeholders::error));
+
       asio::async_read(socket_,
-          asio::buffer(read_msg_.body(), read_msg_.body_length() + chat_message::key_length + chat_message::username_length),
-          boost::bind(&chat_client::handle_read_body, this,
-            asio::placeholders::error));
+        asio::buffer(read_msg_.data() + chat_message::header_length, chat_message::key_length + chat_message::username_length + read_msg_.body_length()), // should really edit how body_length is stored later
+        boost::bind(&chat_client::handle_read_body, this,
+          asio::placeholders::error));
     }
     else
     {
@@ -78,8 +83,11 @@ private:
   {
     if (!error)
     {
-      read_msg_.decode_key_client();
-      read_msg_.decode_username_client();
+      // read_msg_.decode_key_client();
+      // read_msg_.decode_username_client();
+
+      read_msg_.decode_key();
+      read_msg_.decode_username();
 
       if(read_msg_.has_key())
       {

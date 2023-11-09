@@ -88,7 +88,6 @@ public:
     return true;
   }
 
-
   void encode_header()
   {
     using namespace std; // For sprintf and memcpy.
@@ -117,16 +116,6 @@ public:
     memcpy(username_, username, username_length);
   }
 
-  void decode_username_client()
-  {
-    using namespace std;
-    char username[username_length + 1] = "";
-    strncat(username, data_ + key_length, username_length);
-    // removing whitespaces from the username
-    std::remove(username, username + strlen(username) + 1, ' ');
-    memcpy(username_, username, username_length);
-  }
-
   void encode_username(char* const user)
   {
     using namespace std;
@@ -149,33 +138,6 @@ public:
     char key_byte[key_length + 1] = "";
     strncat(key_byte, data_ + header_length, key_length);
     int key_signal = atoi(key_byte);
-    std::cout << "\npublic key:\n";
-    //auto temp = *key_byte;
-   // std::cout << temp.size() << std::endl;
-    for(int i = 0; i < 6; ++i)
-    {
-        printf("%x", key_byte[i]); // prints as hex, only for testing, delete later
-        //std::cout << std::bitset<6>(public_key[i]) << "\n";
-    }
-    if (key_signal == 1)
-    {
-      key_signal_ = true;
-    }
-    else
-    {
-      key_signal_ = false;
-    }
-  }
-
-  void decode_key_client()
-  {
-    using namespace std; // For strncat and atoi.
-    char key_byte[key_length + 1] = "";
-    strncat(key_byte, data_ + header_length, key_length + 1);
-    std::cout << data_[8] << std::endl;
-    int key_signal = atoi(key_byte);
-
-    std::cout << "key signal:" << key_signal << std::endl;
     std::cout << "\npublic key:\n";
     //auto temp = *key_byte;
    // std::cout << temp.size() << std::endl;
