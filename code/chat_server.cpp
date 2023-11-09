@@ -117,7 +117,7 @@ public:
     std::cout << "message arrives in deliver (chat_room): " << msg.data() << std::endl;
     if (msg.has_key()) // if message contains public key, send to all connected clients
     {
-      key_list_.insert({msg.username(), msg.body()});
+      key_list_.insert({msg.source_username(), msg.body()});
 
       std::for_each(participants_.begin(), participants_.end(),
           boost::bind(&chat_participant::deliver,
