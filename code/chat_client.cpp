@@ -9,6 +9,10 @@
 //
 
 // to build: g++ chat_client.cpp -o chat_client -L /usr/lib/ -pthread
+// updated:
+// build with cmake --build ./build
+// run with ./build/client localhost 1225
+// you might have to get the sodium shit, like run the little apk_get or whatever from the main branch stuff. dunno. works on my machine.
 
 #include <cstdlib>
 #include <deque>
@@ -16,6 +20,8 @@
 #include <boost/bind/bind.hpp>
 #include "asio.hpp"
 #include "chat_message.hpp"
+#include "crypto.hpp"
+#include <sodium.h>
 
 using asio::ip::tcp;
 
@@ -182,7 +188,8 @@ int main(int argc, char* argv[])
     // alternatively put generation of key + username
     // + send to server
     // here
-
+    
+///
     // prompt user
     // for username + pw
     // need creation of user...? -> server-side
@@ -190,6 +197,36 @@ int main(int argc, char* argv[])
     std::cout << "What is your username? (max of 16 characters)\n";
     std::cin.getline(user, chat_message::username_length + 1);
 
+/// i'm using the username as the salt for now. this is not smart.
+//  what should happen, is check if the user exists. if yes, there is a salt in the json. return that salt here. use salt for keygen
+// if user doesn't exist, then we randomly generate a 32byte salt, use that to make the key, and pass both the key
+// and the salt to the server. and put it in the json.
+// in the meantime though, just using username as salt. it's """"""" fine """""""
+unsigned char test_public_key[crypto_box_SEEDBYTES];
+unsigned char test_private_key[crypto_box_SEEDBYTES];
+
+std::string test_password;
+std::cout << "please enter your password" << std::endl;
+std::cin >> test_password;
+unsigned char* username_ptr = reinterpret_cast<unsigned char*>(user); // not great to cast like this but it doesn't matter 
+generate_keypair(test_password.c_str(), username_ptr, test_public_key, test_private_key);
+
+/////////// todo:
+//          this stuff above this needs to like, not be sent as a message. i don't know how to do that
+//          but right now this tries to send like 4 messages.
+//          maybe this thing would be useful?
+//          std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // this clears the cin buffer, i needed it before but its useful maybe
+//  
+//          it should just send the key some special way, and then after this do messages
+//
+//          i'm guessing maybe like, when a client connects, it makes a key, and when a new key is added to the server
+//          the server then sends out all the public keys to users
+//          and maybe users keep a vector of structs. like, maybe 100 long.
+//          and each user and their public key is stored in that. 
+//          so, if you are user1 and you want to send a message to user2
+//          it'd do a loop of the users vector, checking each if users[i].username = "user2", and then taking users[i].public_key and using THAT for the message
+///   
+    
     chat_message user_info;
     user_info.encode_key(true);
     std::cout << "user_info.data() is currently" << user_info.data() << "end" << std::endl;
