@@ -54,39 +54,53 @@ public:
 
   void add_user(const char* name, chat_participant_ptr participant)
   {
-    users_.insert({name, participant});
+    std::string testing = name;
+    users_.insert({testing, participant});
     // send all pre-existing keys to client
-    std::cout << "adding user!" << std::endl;
+    // fix this later
+    std::cout << "name of added user is: " << name <<std::endl;
+
+    char target_user[chat_message::username_length + 1];
+    memcpy(target_user, name, chat_message::username_length);
+
+
     for (auto it = key_list_.begin(); it != key_list_.end(); ++it)
     {
-      chat_message msg;
-      msg.encode_key(true);
-    
       std::string username = it->first;
-      char *user = new char[username.length() + 1];
-      strcpy(user, username.c_str());
-      msg.encode_username(user);
-    
-      std::string str_key = it->second;
-      char *key = new char[str_key.length() + 1];
-      strcpy(key, str_key.c_str());
-      msg.body_length(strlen(key));
-      memcpy(msg.body(), key, msg.body_length());
-    
-      msg.encode_header();
 
-      //copied code from deliver (chat_room)
-      auto temp_it = users_.find(name); // create iterator pointing to the username, chat_participant_ptr
-      chat_participant_ptr user_ = temp_it->second; // get the chat_participant_ptr associated with the username
-      std::set<chat_participant_ptr> temp;
-      temp.insert(user_);
-      if (temp_it != users_.end())
+      std::cout << "source username is" << username << std::endl;
+
+      char *source_user = new char[username.length() + 1];
+      strcpy(source_user, username.c_str());
+
+      if (target_user != source_user)
       {
-        std::for_each(temp.begin(), temp.end(),
-        boost::bind(&chat_participant::deliver,
-          boost::placeholders::_1, boost::ref(msg)));
-        // boost::bind(&chat_participant::deliver, &user_,
-        //   boost::placeholders::_1, boost::ref(msg));
+        chat_message msg;
+        msg.encode_key(true);
+  
+        msg.encode_usernames(source_user, target_user);
+      
+        std::string str_key = it->second;
+        char *key = new char[str_key.length() + 1];
+        strcpy(key, str_key.c_str());
+        msg.body_length(strlen(key));
+        memcpy(msg.body(), key, msg.body_length());
+      
+        msg.encode_header();
+
+        //copied code from deliver (chat_room)
+        auto temp_it = users_.find(name); // create iterator pointing to the username, chat_participant_ptr
+        chat_participant_ptr user_ = temp_it->second; // get the chat_participant_ptr associated with the username
+        std::set<chat_participant_ptr> temp;
+        temp.insert(user_);
+        if (temp_it != users_.end())
+        {
+          std::for_each(temp.begin(), temp.end(),
+          boost::bind(&chat_participant::deliver,
+            boost::placeholders::_1, boost::ref(msg)));
+          // boost::bind(&chat_participant::deliver, &user_,
+          //   boost::placeholders::_1, boost::ref(msg));
+        }
       }
     }
   }
@@ -103,7 +117,6 @@ public:
     std::cout << "message arrives in deliver (chat_room): " << msg.data() << std::endl;
     if (msg.has_key()) // if message contains public key, send to all connected clients
     {
-      std::cout << "message does have key" << std::endl;
       key_list_.insert({msg.username(), msg.body()});
 
       std::for_each(participants_.begin(), participants_.end(),
@@ -113,8 +126,7 @@ public:
     else // if message doesn't contain public key, send to username stored in msg (aka the user whose public key)
          // was used to encrypt the message
     {
-      std::cout << "message DOES NOT have key" << std::endl;
-      auto it = users_.find(msg.username()); // create iterator pointing to the username, chat_participant_ptr
+      auto it = users_.find(msg.target_username()); // create iterator pointing to the username, chat_participant_ptr
       chat_participant_ptr user_ = it->second; // get the chat_participant_ptr associated with the username
       std::set<chat_participant_ptr> temp;
       temp.insert(user_);
@@ -169,7 +181,6 @@ public:
     std::cout << "read_msg_.data() arrives in deliver (chat_session): " << msg.data() << std::endl;
     bool write_in_progress = !write_msgs_.empty();
     write_msgs_.push_back(msg);
-    std::cout << "write_msgs_.front().data() is: " << write_msgs_.front().data() << std::endl;
     if (!write_in_progress)
     {
       asio::async_write(socket_,
@@ -182,12 +193,11 @@ public:
 
   void handle_read_header(const asio::error_code& error)
   {
-    std::cout << "read_msg_.data() arrives in read_header: " << read_msg_.data() << std::endl;
     if (!error && read_msg_.decode_header())
     {
-
+      // std::cout << "read_msg.data() contains: " << read_msg_.data() << std::endl;
       asio::async_read(socket_,
-        asio::buffer(read_msg_.data() + chat_message::header_length, chat_message::key_length + chat_message::username_length + read_msg_.body_length()), // should really edit how body_length is stored later
+        asio::buffer(read_msg_.data() + chat_message::header_length, chat_message::total_encoding_length - chat_message::header_length + read_msg_.body_length()), // should really edit how body_length is stored later
         boost::bind(&chat_session::handle_read_body, shared_from_this(),
           asio::placeholders::error));
     }
@@ -201,19 +211,21 @@ public:
   {
     if (!error)
     {
+      std::cout << "message was received" << std::endl;
+      std::cout << "read_msg.data() contains: " << read_msg_.data() << std::endl;
       read_msg_.decode_key();
 
       if (first_msg_)
       {
         first_msg_ = false;
-        read_msg_.decode_username();
-        set_user(read_msg_.username());
+        read_msg_.decode_usernames();
+        set_user(read_msg_.source_username());
 
         room_.add_user(user_, shared_from_this()); // add association between client pointer & client username in chat_room's list
         std::cout << "User: " << user_ << " has connected." << std::endl;
       }
 
-      read_msg_.decode_username();
+      read_msg_.decode_usernames();
     
       std::cout << "read_msg_.data() arrives in read_body: " << read_msg_.data() << std::endl;
       room_.deliver(read_msg_);

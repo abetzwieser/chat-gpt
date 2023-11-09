@@ -20,10 +20,21 @@ class chat_message
 public:
   enum
   {
+    // length of encodings
     header_length = 4,
-    username_length = 16,
+    username_length = 16, // used for both source_user & target_user
     key_length = 4,
-    max_body_length = 512
+    total_encoding_length = header_length
+      + username_length * 2
+      + key_length,
+    max_body_length = 512,
+    
+    
+    // offsets for encoding/decoding
+    key_offset = header_length,
+    source_user_offset = header_length + key_length,
+    target_user_offset = header_length + key_length + username_length,
+    body_offset = header_length + key_length + username_length * 2
   };
 
   chat_message()
@@ -45,21 +56,21 @@ public:
   {
     // og
     // return header_length + body_length_;
-    return header_length + key_length + username_length + body_length_;
+    return total_encoding_length + body_length_;
   }
 
   const char* body() const
   {
     // og
     // return data_ + header_length;
-    return data_ + header_length + key_length + username_length;
+    return data_ + total_encoding_length;
   }
 
   char* body()
   {
     // og
     // return data_ + header_length;
-    return data_ + header_length + key_length + username_length;
+    return data_ + total_encoding_length;
   }
 
   size_t body_length() const
@@ -116,12 +127,66 @@ public:
     memcpy(username_, username, username_length);
   }
 
+  const char* source_username() const
+  {
+    return source_user_;
+  }
+
+  const char* target_username() const
+  {
+    return target_user_;
+  }
+
+  char* source_username()
+  {
+    return source_user_;
+  }
+
+  char* target_username()
+  {
+    return target_user_;
+  }
+
   void encode_username(char* const user)
   {
     using namespace std;
     char username[username_length + 1] = "";
     sprintf(username, "%16s", user);
     memcpy(data_ + header_length + key_length, username, username_length);
+  }
+
+  void decode_usernames()
+  {
+    using namespace std;
+
+    // decoding source user
+    char source_username[username_length + 1] = "";
+    strncat(source_username, data_ + source_user_offset, username_length);
+    // removing whitespaces from the username
+    std::remove(source_username, source_username + strlen(source_username) + 1, ' ');
+    memcpy(source_user_, source_username, username_length);
+
+    // decoding target user
+    char target_username[username_length + 1] = "";
+    strncat(target_username, data_ + target_user_offset, username_length);
+    // removing whitespaces from the username
+    std::remove(target_username, target_username + strlen(target_username) + 1, ' ');
+    memcpy(target_user_, target_username, username_length);
+  }
+
+  void encode_usernames(char* const source_user, char* const target_user)
+  {
+    using namespace std; 
+    
+    // encoding source user
+    char source_username[username_length + 1] = "";
+    sprintf(source_username, "%16s", source_user);
+    memcpy(data_ + source_user_offset, source_username, username_length);
+
+    // encoding target user
+    char target_username[username_length + 1] = "";
+    sprintf(target_username, "%16s", target_user);
+    memcpy(data_ + target_user_offset, target_username, username_length);
   }
 
   bool has_key() const
@@ -136,7 +201,7 @@ public:
     // while also returning true/false
     using namespace std; // For strncat and atoi.
     char key_byte[key_length + 1] = "";
-    strncat(key_byte, data_ + header_length, key_length);
+    strncat(key_byte, data_ + key_offset, key_length);
     int key_signal = atoi(key_byte);
     
     if (key_signal == 1)
@@ -162,13 +227,15 @@ public:
       sprintf(key, "%4d", 0);
     }
 
-    memcpy(data_ + header_length, key, key_length);
+    memcpy(data_ + key_offset, key, key_length);
   }
 
 private:
   char data_[header_length + username_length + key_length + max_body_length];
   size_t body_length_;
   char username_[username_length];
+  char target_user_[username_length];
+  char source_user_[username_length];
   bool key_signal_;
 
 };
