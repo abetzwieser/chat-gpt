@@ -46,6 +46,11 @@ public:
         boost::bind(&chat_client::do_close, this));
   }
 
+  std::map<std::string, std::string> get_key_list()
+  {
+    return key_list_;
+  }
+
 private:
 
   void handle_connect(const asio::error_code& error)
@@ -63,11 +68,6 @@ private:
   {
     if (!error && read_msg_.decode_header())
     {
-      // asio::async_read(socket_,
-      //     asio::buffer(read_msg_.body(), read_msg_.body_length() + chat_message::key_length + chat_message::username_length),
-      //     boost::bind(&chat_client::handle_read_body, this,
-      //       asio::placeholders::error));
-
       asio::async_read(socket_,
         asio::buffer(read_msg_.data() + chat_message::header_length, chat_message::key_length + chat_message::username_length + read_msg_.body_length()), // should really edit how body_length is stored later
         boost::bind(&chat_client::handle_read_body, this,
@@ -83,34 +83,24 @@ private:
   {
     if (!error)
     {
-      // read_msg_.decode_key_client();
-      // read_msg_.decode_username_client();
-
       read_msg_.decode_key();
       read_msg_.decode_username();
 
-      if(read_msg_.has_key())
+      if (read_msg_.has_key())
       {
-        std::cout << "message has key" << std::endl;
+        std::cout << "User " << read_msg_.username() << " has connected." << std::endl;
+        key_list_.insert({read_msg_.username(), read_msg_.body()});
+        // std::cout << "value associated with " << read_msg_.username() << " is " << key_list_.at(read_msg_.username()) << std::endl;
       }
       else
-      { 
-        std::cout << "message does not have key" << std::endl;
+      {
+        std::cout << "User " << read_msg_.username() << ": ";
+        std::cout.write(read_msg_.body(), read_msg_.body_length());
+        std::cout << "\n";
       }
-
-      std::cout << "read_msg_.data() has: " << read_msg_.data() << std::endl;
-      std::cout << "read_msg_.body() has: " << read_msg_.body() << std::endl;
-
-      std::cout << "Username is: " << read_msg_.username() << std::endl;
-
-      // std::cout << "THIS IS THE RECEIVED DATA (handle_body):" << read_msg_.data() << std::endl;
-      // std::cout << "THIS IS THE RECEIVED BODY (handle_body):" << read_msg_.body() << std::endl;
-
       // have to decrypt message first (if it is an encrypted message)
-      std::cout.write(read_msg_.body(), read_msg_.body_length() + chat_message::key_length + chat_message::username_length);
-      std::cout << "\n";
       asio::async_read(socket_,
-          asio::buffer(read_msg_.data(), chat_message::header_length),
+        asio::buffer(read_msg_.data(), chat_message::header_length),
           boost::bind(&chat_client::handle_read_header, this,
             asio::placeholders::error));
     }
@@ -166,10 +156,7 @@ private:
   chat_message read_msg_;
   chat_message_queue write_msgs_;
   char* private_key_;
-  std::vector<char*> test_key_list_;
-  std::map<char*, char*> key_list_;
-  // user, pk
-  // take in user + public key initially as chat_message
+  std::map<std::string, std::string> key_list_;
 };
 
 int main(int argc, char* argv[])
@@ -221,13 +208,32 @@ int main(int argc, char* argv[])
     char line[chat_message::max_body_length + 1];
     while (std::cin.getline(line, chat_message::max_body_length + 1))
     {
-      using namespace std; // For strlen and memcpy.
-      chat_message msg;
-      // encrypt line
-      msg.body_length(strlen(line));
-      memcpy(msg.body(), line, msg.body_length());
-      msg.encode_header();
-      c.write(msg);
+      std::map<std::string, std::string> key_list = c.get_key_list();
+      std::vector<std::string> users;
+      for (auto it = key_list.begin(); it != key_list.end(); ++it)
+      {
+        users.push_back(it->first);
+      }
+
+      for (auto it = users.begin(); it != users.end(); ++it)
+      {
+        using namespace std; // For strlen and memcpy.
+        chat_message msg;
+        msg.encode_key(false);
+
+        std::string username = *it;
+        char *user = new char[username.length() + 1];
+        strcpy(user, username.c_str());
+        msg.encode_username(user);
+
+        msg.body_length(strlen(line));
+        memcpy(msg.body(), line, msg.body_length());
+
+        // encrypt message
+        msg.encode_header();
+        c.write(msg);
+      }
+      
     }
 
     c.close();

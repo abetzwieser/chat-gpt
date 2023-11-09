@@ -138,14 +138,7 @@ public:
     char key_byte[key_length + 1] = "";
     strncat(key_byte, data_ + header_length, key_length);
     int key_signal = atoi(key_byte);
-    std::cout << "\npublic key:\n";
-    //auto temp = *key_byte;
-   // std::cout << temp.size() << std::endl;
-    for(int i = 0; i < 6; ++i)
-    {
-        printf("%x", key_byte[i]); // prints as hex, only for testing, delete later
-        //std::cout << std::bitset<6>(public_key[i]) << "\n";
-    }
+    
     if (key_signal == 1)
     {
       key_signal_ = true;

@@ -55,6 +55,40 @@ public:
   void add_user(const char* name, chat_participant_ptr participant)
   {
     users_.insert({name, participant});
+    // send all pre-existing keys to client
+    std::cout << "adding user!" << std::endl;
+    for (auto it = key_list_.begin(); it != key_list_.end(); ++it)
+    {
+      chat_message msg;
+      msg.encode_key(true);
+    
+      std::string username = it->first;
+      char *user = new char[username.length() + 1];
+      strcpy(user, username.c_str());
+      msg.encode_username(user);
+    
+      std::string str_key = it->second;
+      char *key = new char[str_key.length() + 1];
+      strcpy(key, str_key.c_str());
+      msg.body_length(strlen(key));
+      memcpy(msg.body(), key, msg.body_length());
+    
+      msg.encode_header();
+
+      //copied code from deliver (chat_room)
+      auto temp_it = users_.find(name); // create iterator pointing to the username, chat_participant_ptr
+      chat_participant_ptr user_ = temp_it->second; // get the chat_participant_ptr associated with the username
+      std::set<chat_participant_ptr> temp;
+      temp.insert(user_);
+      if (temp_it != users_.end())
+      {
+        std::for_each(temp.begin(), temp.end(),
+        boost::bind(&chat_participant::deliver,
+          boost::placeholders::_1, boost::ref(msg)));
+        // boost::bind(&chat_participant::deliver, &user_,
+        //   boost::placeholders::_1, boost::ref(msg));
+      }
+    }
   }
 
   void leave(chat_participant_ptr participant)
@@ -70,6 +104,8 @@ public:
     if (msg.has_key()) // if message contains public key, send to all connected clients
     {
       std::cout << "message does have key" << std::endl;
+      key_list_.insert({msg.username(), msg.body()});
+
       std::for_each(participants_.begin(), participants_.end(),
           boost::bind(&chat_participant::deliver,
             boost::placeholders::_1, boost::ref(msg)));
@@ -97,6 +133,7 @@ public:
 private:
   std::set<chat_participant_ptr> participants_;
   std::map<std::string, chat_participant_ptr> users_;
+  std::map<std::string, std::string> key_list_;
 };
 
 //----------------------------------------------------------------------
