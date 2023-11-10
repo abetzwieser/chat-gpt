@@ -41,6 +41,7 @@ void generate_keypair(const char* user_password, unsigned char* salt, unsigned c
         //std::cout << std::bitset<6>(public_key[i]) << "\n";
     }
     std::cout << std::endl;
+    sodium_memzero(masterkey, KEY_LEN); // zeroes out masterkey in memory
 }
 
 void encrypt_message(unsigned char* public_key, char message_or_whatever){
@@ -51,42 +52,36 @@ void decrypt_message(unsigned char* private_key, char message_or_whatever){
   // uses private key on message, returns decrypted string or something
 }
 
-int main()
-{
-  if (sodium_init() == -1) {
-    std::cout << "libsodium failed to initialize\n";
-    return -1;
-  }
+// int main()
+// {
+// // there's probably a better way to do this but it will work if we do it this way
+// // in like, the "client" file or whatever, you'd create empty unsigned chars for a public and private key
+// // so we can keep that stuff in memory, with the client
+// //unsigned char public_key[KEY_LEN];
+// //unsigned char private_key[KEY_LEN];
+// // you enter a password and a salt, and it generates a hashed password which serves as a "master key"
+// // that master key then makes a public and private key pair, stored in public_key and private_key
+// //generate_keypair(PASSWORD, salt, public_key, private_key); 
 
-// there's probably a better way to do this but it will work if we do it this way
-// in like, the "client" file or whatever, you'd create empty unsigned chars for a public and private key
-// so we can keep that stuff in memory, with the client
-//unsigned char public_key[KEY_LEN];
-//unsigned char private_key[KEY_LEN];
-// you enter a password and a salt, and it generates a hashed password which serves as a "master key"
-// that master key then makes a public and private key pair, stored in public_key and private_key
-//generate_keypair(PASSWORD, salt, public_key, private_key); 
-
-// then like, if the client wants to send a message, it would call encrypt_message() and the output of that goes to the server
-// and when a message comes in, decrypt_message() gets called, and a plaintext message comes out
+// // then like, if the client wants to send a message, it would call encrypt_message() and the output of that goes to the server
+// // and when a message comes in, decrypt_message() gets called, and a plaintext message comes out
 
 
 
-// example code for client:
-// could hardcode crypto_box_SEEDBYTES as 32U but that's maybe bad practice. dunno.
-// this 100% needs like, input validation, etc. 
-unsigned char test_public_key[crypto_box_SEEDBYTES];
-unsigned char test_private_key[crypto_box_SEEDBYTES];
-std::string test_password;
-unsigned char test_salt[] = "test";
+// // example code for client:
+// // could hardcode crypto_box_SEEDBYTES as 32U but that's maybe bad practice. dunno.
+// // this 100% needs like, input validation, etc. 
+// unsigned char test_public_key[crypto_box_SEEDBYTES];
+// unsigned char test_private_key[crypto_box_SEEDBYTES];
+// std::string test_password;
+// unsigned char test_salt[] = "test";
 
-std::cout << "please enter your password" << std::endl;
-std::cin >> test_password;
-const char* pw_point = test_password.c_str();
-generate_keypair(pw_point, test_salt, test_public_key, test_private_key);
+// std::cout << "please enter your password" << std::endl;
+// std::cin >> test_password;
+// const char* pw_point = test_password.c_str();
+// generate_keypair(pw_point, test_salt, test_public_key, test_private_key);
 
 
 
-return 0;
-}
- 
+// return 0;
+// }
