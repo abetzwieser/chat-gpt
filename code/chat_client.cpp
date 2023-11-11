@@ -112,7 +112,7 @@ private:
         // map uses std::string
 
             //prevent own key from going into storage-- we already know our own key
-        if(strcmp(read_msg_.source_username(), get_my_username())){
+        //if(strcmp(read_msg_.source_username(), get_my_username())){
 
         // make unsigned char* -> char* conversion
         // char* -> unsigned char* conversion in crypto.cpp / hpp
@@ -120,7 +120,7 @@ private:
         // std::cout << "size of public key is : " << sizeof(public_key) << std::endl;
 
         key_list_.insert({read_msg_.source_username(), public_key});
-        }
+        //}
         // std::cout << "value associated with " << read_msg_.username() << " is " << key_list_.at(read_msg_.username()) << std::endl;
       }
       else
@@ -211,13 +211,16 @@ int main(int argc, char* argv[])
     tcp::resolver::results_type endpoints = resolver.resolve(argv[1], argv[2]);
 
     chat_client c(io_context, endpoints);
+    char defaultname[] = "";  // because of how username checking works, setting a default username prevents segfaults when a message comes before a user set their name
+    c.set_my_username(defaultname);
 
     asio::thread t(boost::bind(&asio::io_context::run, &io_context));
     
     // prompt user for username & password
-    char user[chat_message::username_length + 1];
+    char user[chat_message::username_length + 1] = "";
     std::cout << "What is your username? (max of 16 characters)\n";
     std::cin.getline(user, chat_message::username_length + 1);
+
 
     char myname[17] = "";
     memcpy(myname, user, 16);
