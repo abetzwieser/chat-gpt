@@ -117,6 +117,27 @@ public:
     std::cout << "message arrives in deliver (chat_room): " << msg.data() << std::endl;
     if (msg.has_key()) // if message contains public key, send to all connected clients
     {
+      //
+      //
+      // cHECKING FOR SIZE OF PUBLIC KEY IN TRNASIT
+      // PLEAES DELETE LATER
+      // convert msg.body() to char* from const char*
+      //char* temp[strlen(msg.body())];
+      //memcpy(temp, msg.body(), strlen(msg.body()));
+      char* temp[37 + 1]; // take the header length <- body_length i think idk
+      memcpy(temp, msg.body(), 37 + 1);
+      unsigned char* public_key = reinterpret_cast<unsigned char*>(temp);
+
+      std::cout << "\npublic key:\n";
+      for(int i = 0; i < 32; i++)
+      {
+          printf("%x", public_key[i]); // prints as hex, only for testing, delete later
+          //std::cout << std::bitset<6>(public_key[i]) << "\n";
+      }
+      std::cout << std::endl;
+
+      std::cout << "size of public key is : " << sizeof(public_key) << std::endl;
+
       key_list_.insert({msg.source_username(), msg.body()});
 
       std::for_each(participants_.begin(), participants_.end(),

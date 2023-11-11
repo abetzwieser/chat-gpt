@@ -52,9 +52,19 @@ public:
         boost::bind(&chat_client::do_close, this));
   }
 
-  std::map<std::string, std::string> get_key_list()
+  std::map<std::string, unsigned char*> get_key_list()
   {
     return key_list_;
+  }
+
+    char* get_my_username()
+  {
+    return my_username;
+  }
+
+  void set_my_username(char* username)
+  {
+    my_username = username;
   }
 
 private:
@@ -92,17 +102,35 @@ private:
       read_msg_.decode_key();
       read_msg_.decode_usernames();
 
-      std::cout << "read_msg_.data() in handle_read_body is: " << read_msg_.data() << std::endl;
+      // std::cout << "read_msg_.data() in handle_read_body is: " << read_msg_.data() << std::endl;
 
       if (read_msg_.has_key())
       {
         std::cout << "User " << read_msg_.source_username() << " has connected." << std::endl;
-        key_list_.insert({read_msg_.source_username(), read_msg_.body()});
+        // arrives as char *
+        // needs to be stored as unsigned char *
+        // map uses std::string
+
+            //prevent own key from going into storage-- we already know our own key
+        if(strcmp(read_msg_.source_username(), get_my_username())){
+
+        // make unsigned char* -> char* conversion
+        // char* -> unsigned char* conversion in crypto.cpp / hpp
+        unsigned char* public_key = reinterpret_cast<unsigned char*>(read_msg_.body());
+        // std::cout << "size of public key is : " << sizeof(public_key) << std::endl;
+
+        key_list_.insert({read_msg_.source_username(), public_key});
+        }
         // std::cout << "value associated with " << read_msg_.username() << " is " << key_list_.at(read_msg_.username()) << std::endl;
       }
       else
       {
-        std::cout << "User " << read_msg_.source_username() << ": ";
+        // i don't know if it should go here, but i don't want it to say your username when you send a message
+        // but maybe that doesn't matter because the message handling will be from the server and you wouldn't normally
+        // receive a message from yourself
+        
+        //std::cout << "User " << read_msg_.source_username() << ": ";
+        std::cout << read_msg_.source_username() << ": ";
         std::cout.write(read_msg_.body(), read_msg_.body_length());
         std::cout << "\n";
       }
@@ -120,7 +148,6 @@ private:
 
   void do_write(chat_message msg)
   {
-    // have to encrypt message with all held public keys
     bool write_in_progress = !write_msgs_.empty();
     write_msgs_.push_back(msg);
     if (!write_in_progress)
@@ -164,7 +191,8 @@ private:
   chat_message read_msg_;
   chat_message_queue write_msgs_;
   char* private_key_;
-  std::map<std::string, std::string> key_list_;
+  std::map<std::string, unsigned char*> key_list_;
+  char* my_username;
 };
 
 int main(int argc, char* argv[])
@@ -191,19 +219,36 @@ int main(int argc, char* argv[])
     std::cout << "What is your username? (max of 16 characters)\n";
     std::cin.getline(user, chat_message::username_length + 1);
 
+    char myname[17] = "";
+    memcpy(myname, user, 16);
+    // removing whitespaces from the username
+    std::remove(myname, myname + strlen(myname) + 1, ' ');
+    //memcpy(source_user_, source_username, strlen(myname));
+    c.set_my_username(myname);
+
     /// i'm using the username as the salt for now. this is not smart.
     //  what should happen, is check if the user exists. if yes, there is a salt in the json. return that salt here. use salt for keygen
     // if user doesn't exist, then we randomly generate a 32byte salt, use that to make the key, and pass both the key
     // and the salt to the server. and put it in the json.
     // in the meantime though, just using username as salt. it's """"""" fine """""""
-    // unsigned char test_public_key[crypto_box_SEEDBYTES];
-    // unsigned char test_private_key[crypto_box_SEEDBYTES];
+    unsigned char test_public_key[crypto_box_SEEDBYTES];
+    unsigned char test_private_key[crypto_box_SEEDBYTES];
 
-    // std::string test_password;
-    // std::cout << "please enter your password" << std::endl;
-    // std::cin >> test_password;
-    // unsigned char* username_ptr = reinterpret_cast<unsigned char*>(user); // not great to cast like this but it doesn't matter 
-    // generate_keypair(test_password.c_str(), username_ptr, test_public_key, test_private_key);
+    std::string test_password;
+    std::cout << "please enter your password" << std::endl;
+    std::cin >> test_password;
+    unsigned char* username_ptr = reinterpret_cast<unsigned char*>(user); // not great to cast like this but it doesn't matter 
+    generate_keypair(test_password.c_str(), username_ptr, test_public_key, test_private_key);
+
+    // std::cout << "\npublic key:\n";
+    // for(int i = 0; i < crypto_generichash_BYTES; i++)
+    // {
+    //     printf("%x", test_public_key[i]); // prints as hex, only for testing, delete later
+    //     //std::cout << std::bitset<6>(public_key[i]) << "\n";
+    // }
+    // std::cout << std::endl;
+
+    // std::cout << "size of public key is: " << sizeof(test_public_key) << std::endl;
 
     /////////// todo:
     //          this stuff above this needs to like, not be sent as a message. i don't know how to do that
@@ -223,27 +268,50 @@ int main(int argc, char* argv[])
     
     chat_message user_info;
     user_info.encode_key(true);
-    std::cout << "user_info.data() is currently" << user_info.data() << "end" << std::endl;
     // user_info.encode_username(user);
     char temp_empty[1] = "";
     user_info.encode_usernames(user, temp_empty);
-    std::cout << "user_info.data() is currently" << user_info.data() << "end" << std::endl;
     
-    char temp_text[5] = "haha";
-    user_info.body_length(strlen(temp_text));
-    memcpy(user_info.body(), temp_text, user_info.body_length());
-    std::cout << "user_info.data() is currently" << user_info.data() << "end" << std::endl;
+    // char temp_text[5] = "haha";
+    // user_info.body_length(strlen(temp_text));
+    // memcpy(user_info.body(), temp_text, user_info.body_length());
+
+    char *public_key = reinterpret_cast<char*>(test_public_key);
+
+    unsigned char *public_key2 = reinterpret_cast<unsigned char*>(public_key);
+
+    // std::cout << "\npublic key:\n";
+    // for(int i = 0; i < crypto_generichash_BYTES; i++)
+    // {
+    //     printf("%x",public_key2[i]); // prints as hex, only for testing, delete later
+    //     //std::cout << std::bitset<6>(public_key[i]) << "\n";
+    // }
+    // std::cout << std::endl;
+
+
+    user_info.body_length(strlen(public_key));// take the header length <- body_length i think idk 
+    memcpy(user_info.body(), public_key, user_info.body_length());
     
     user_info.encode_header();
-    std::cout << "user_info.data() is currently" << user_info.data() << "end" << std::endl;
+    // std::cout << "user_info.data() is currently" << user_info.data() << "end" << std::endl;
     
+    unsigned char* publickey = reinterpret_cast<unsigned char*>(user_info.body());
+    // std::cout << "size of public key after full encoding is : " << sizeof(publickey) << std::endl;
+
+    // std::cout << "\npublic key:\n";
+    // for(int i = 0; i < crypto_generichash_BYTES; i++)
+    // {
+    //     printf("%x",publickey[i]); // prints as hex, only for testing, delete later
+    //     //std::cout << std::bitset<6>(public_key[i]) << "\n";
+    // }
+    // std::cout << std::endl;
 
     c.write(user_info);
 
     char line[chat_message::max_body_length + 1];
     while (std::cin.getline(line, chat_message::max_body_length + 1))
     {
-      std::map<std::string, std::string> key_list = c.get_key_list();
+      std::map<std::string, unsigned char*> key_list = c.get_key_list();
       std::vector<std::string> target_users;
       for (auto it = key_list.begin(); it != key_list.end(); ++it)
       {

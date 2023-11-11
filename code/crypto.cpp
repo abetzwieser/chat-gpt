@@ -2,8 +2,9 @@
 #include <sodium.h>
 #include <string.h>
 #include <bitset>
-
-
+#include <stdlib.h>
+#include <vector>
+#include <iomanip>
 //note: salt is not a "secret", save the salt somewhere.
 // like in text document or whatever
 
@@ -34,22 +35,47 @@ void generate_keypair(const char* user_password, unsigned char* salt, unsigned c
     // probably should throw error here actually
   }
   crypto_box_seed_keypair(public_key, private_key, masterkey); // uses masterkey as seed for keypair
-  std::cout << "\npublic key:\n";
-    for(int i = 0; i < crypto_generichash_BYTES; i++)
-    {
-        printf("%x",public_key[i]); // prints as hex, only for testing, delete later
-        //std::cout << std::bitset<6>(public_key[i]) << "\n";
-    }
-    std::cout << std::endl;
+  // std::cout << "\npublic key:\n";
+  //   for(int i = 0; i < crypto_generichash_BYTES; i++)
+  //   {
+  //       printf("%x",public_key[i]); // prints as hex, only for testing, delete later
+  //       //std::cout << std::bitset<6>(public_key[i]) << "\n";
+  //   }
     sodium_memzero(masterkey, KEY_LEN); // zeroes out masterkey in memory
 }
 
-void encrypt_message(unsigned char* public_key, char message_or_whatever){
-  // uses public key on message, returns encrypted string or something
+
+//takes sender secret key, and receiver public key, encrypts message
+std::vector<unsigned char> encrypt_message(unsigned char* sendersk, unsigned char* recpk, const unsigned char* message_or_whatever, const unsigned char* nonce){ 
+
+  size_t messagelength = strlen(reinterpret_cast<const char*>(message_or_whatever)) + 1;
+  //int messagelength = message_or_whatever.size() + 1;
+  //std::cout<<"Message length: " << messagelength << std::endl;
+
+  unsigned char cipher[messagelength + crypto_box_MACBYTES];
+
+  if (crypto_box_easy(cipher, message_or_whatever, 
+  messagelength, nonce, recpk, sendersk) != 0) {
+    std::cout<<"Message tampered."<<std::endl;
+  }
+
+  std::vector<unsigned char> cipherVec(cipher, cipher + messagelength + crypto_box_MACBYTES);
+  return cipherVec;
 }
 
-void decrypt_message(unsigned char* private_key, char message_or_whatever){
+void decrypt_message(unsigned char* private_key, const unsigned char* sender_pk, const std::vector<unsigned char>& cipher,  const unsigned char* nonce){
   // uses private key on message, returns decrypted string or something
+    std::vector<unsigned char> decrypted(cipher.size());
+
+    //std::cout<< "Decrypted size:" << decrypted.size() << std::endl;
+  
+    if (crypto_box_open_easy(decrypted.data(), cipher.data(), cipher.size(), nonce, sender_pk, private_key) != 0) {
+        std::cerr << "Decryption failed. Message tampered." << std::endl;
+        // Handle tampered message appropriately
+        return;
+    }
+    //implement std::vector return
+    std::cout << "Decrypted message: " << decrypted.data() << std::endl;
 }
 
 // int main()
