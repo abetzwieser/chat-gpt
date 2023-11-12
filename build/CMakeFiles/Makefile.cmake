@@ -16,12 +16,16 @@ set(CMAKE_MAKEFILE_DEPENDS
   "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/CMakeSystemSpecificInformation.cmake"
   "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/CMakeSystemSpecificInitialize.cmake"
   "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/Compiler/CMakeCommonCompilerMacros.cmake"
-  "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/Compiler/GNU-C.cmake"
-  "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/Compiler/GNU-CXX.cmake"
+  "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/Compiler/Clang-C.cmake"
+  "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/Compiler/Clang-CXX.cmake"
+  "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/Compiler/Clang.cmake"
   "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/Compiler/GNU.cmake"
+  "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/FindBoost.cmake"
   "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/FindPackageHandleStandardArgs.cmake"
   "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/FindPackageMessage.cmake"
   "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/FindPkgConfig.cmake"
+  "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/Platform/Linux-Clang-C.cmake"
+  "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/Platform/Linux-Clang-CXX.cmake"
   "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/Platform/Linux-GNU-C.cmake"
   "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/Platform/Linux-GNU-CXX.cmake"
   "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/Platform/Linux-GNU.cmake"
@@ -48,5 +52,6 @@ set(CMAKE_MAKEFILE_PRODUCTS
 
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
-  "CMakeFiles/project.dir/DependInfo.cmake"
+  "CMakeFiles/client.dir/DependInfo.cmake"
+  "CMakeFiles/server.dir/DependInfo.cmake"
   )

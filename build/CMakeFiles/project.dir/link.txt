@@ -1,1 +1,0 @@
-/usr/bin/g++ -g CMakeFiles/project.dir/code/crypto.cpp.o -o project  /usr/lib/x86_64-linux-gnu/libsodium.so 

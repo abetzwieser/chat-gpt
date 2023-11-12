@@ -64,7 +64,17 @@
 		{
 			"isCMake" : true,
 			"isExternal" : true,
-			"path" : "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/Compiler/GNU-C.cmake"
+			"path" : "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/Compiler/Clang-C.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/Compiler/Clang.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/Compiler/CMakeCommonCompilerMacros.cmake"
 		},
 		{
 			"isCMake" : true,
@@ -75,6 +85,11 @@
 			"isCMake" : true,
 			"isExternal" : true,
 			"path" : "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/Compiler/CMakeCommonCompilerMacros.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/Platform/Linux-Clang-C.cmake"
 		},
 		{
 			"isCMake" : true,
@@ -104,12 +119,17 @@
 		{
 			"isCMake" : true,
 			"isExternal" : true,
-			"path" : "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/Compiler/GNU-CXX.cmake"
+			"path" : "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/Compiler/Clang-CXX.cmake"
 		},
 		{
 			"isCMake" : true,
 			"isExternal" : true,
-			"path" : "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/Compiler/GNU.cmake"
+			"path" : "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/Compiler/Clang.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/Platform/Linux-Clang-CXX.cmake"
 		},
 		{
 			"isCMake" : true,
@@ -125,6 +145,21 @@
 			"isCMake" : true,
 			"isExternal" : true,
 			"path" : "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/CMakeCommonLanguageInclude.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/FindBoost.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/codespace/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.27/Modules/FindPackageMessage.cmake"
 		},
 		{
 			"path" : "CMake/FindSodium.cmake"

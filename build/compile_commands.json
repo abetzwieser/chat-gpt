@@ -1,8 +1,20 @@
 [
 {
   "directory": "/workspaces/csc3380-fall-2023-project-group-16/build",
-  "command": "/usr/bin/g++   -g -std=gnu++2a -o CMakeFiles/project.dir/code/crypto.cpp.o -c /workspaces/csc3380-fall-2023-project-group-16/code/crypto.cpp",
+  "command": "/usr/bin/clang++   -O3 -DNDEBUG -std=gnu++2a -o CMakeFiles/client.dir/code/chat_client.cpp.o -c /workspaces/csc3380-fall-2023-project-group-16/code/chat_client.cpp",
+  "file": "/workspaces/csc3380-fall-2023-project-group-16/code/chat_client.cpp",
+  "output": "CMakeFiles/client.dir/code/chat_client.cpp.o"
+},
+{
+  "directory": "/workspaces/csc3380-fall-2023-project-group-16/build",
+  "command": "/usr/bin/clang++   -O3 -DNDEBUG -std=gnu++2a -o CMakeFiles/client.dir/code/crypto.cpp.o -c /workspaces/csc3380-fall-2023-project-group-16/code/crypto.cpp",
   "file": "/workspaces/csc3380-fall-2023-project-group-16/code/crypto.cpp",
-  "output": "CMakeFiles/project.dir/code/crypto.cpp.o"
+  "output": "CMakeFiles/client.dir/code/crypto.cpp.o"
+},
+{
+  "directory": "/workspaces/csc3380-fall-2023-project-group-16/build",
+  "command": "/usr/bin/clang++   -O3 -DNDEBUG -std=gnu++2a -o CMakeFiles/server.dir/code/chat_server.cpp.o -c /workspaces/csc3380-fall-2023-project-group-16/code/chat_server.cpp",
+  "file": "/workspaces/csc3380-fall-2023-project-group-16/code/chat_server.cpp",
+  "output": "CMakeFiles/server.dir/code/chat_server.cpp.o"
 }
 ]

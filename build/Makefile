@@ -117,24 +117,85 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named project
+# Target rules for targets named client
 
 # Build rule for target.
-project: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 project
-.PHONY : project
+client: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 client
+.PHONY : client
 
 # fast build rule for target.
-project/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/project.dir/build.make CMakeFiles/project.dir/build
-.PHONY : project/fast
+client/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/build
+.PHONY : client/fast
+
+#=============================================================================
+# Target rules for targets named server
+
+# Build rule for target.
+server: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 server
+.PHONY : server
+
+# fast build rule for target.
+server/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/build
+.PHONY : server/fast
+
+code/chat_client.o: code/chat_client.cpp.o
+.PHONY : code/chat_client.o
+
+# target to build an object file
+code/chat_client.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/code/chat_client.cpp.o
+.PHONY : code/chat_client.cpp.o
+
+code/chat_client.i: code/chat_client.cpp.i
+.PHONY : code/chat_client.i
+
+# target to preprocess a source file
+code/chat_client.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/code/chat_client.cpp.i
+.PHONY : code/chat_client.cpp.i
+
+code/chat_client.s: code/chat_client.cpp.s
+.PHONY : code/chat_client.s
+
+# target to generate assembly for a file
+code/chat_client.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/code/chat_client.cpp.s
+.PHONY : code/chat_client.cpp.s
+
+code/chat_server.o: code/chat_server.cpp.o
+.PHONY : code/chat_server.o
+
+# target to build an object file
+code/chat_server.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/code/chat_server.cpp.o
+.PHONY : code/chat_server.cpp.o
+
+code/chat_server.i: code/chat_server.cpp.i
+.PHONY : code/chat_server.i
+
+# target to preprocess a source file
+code/chat_server.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/code/chat_server.cpp.i
+.PHONY : code/chat_server.cpp.i
+
+code/chat_server.s: code/chat_server.cpp.s
+.PHONY : code/chat_server.s
+
+# target to generate assembly for a file
+code/chat_server.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/code/chat_server.cpp.s
+.PHONY : code/chat_server.cpp.s
 
 code/crypto.o: code/crypto.cpp.o
 .PHONY : code/crypto.o
 
 # target to build an object file
 code/crypto.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/project.dir/build.make CMakeFiles/project.dir/code/crypto.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/code/crypto.cpp.o
 .PHONY : code/crypto.cpp.o
 
 code/crypto.i: code/crypto.cpp.i
@@ -142,7 +203,7 @@ code/crypto.i: code/crypto.cpp.i
 
 # target to preprocess a source file
 code/crypto.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/project.dir/build.make CMakeFiles/project.dir/code/crypto.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/code/crypto.cpp.i
 .PHONY : code/crypto.cpp.i
 
 code/crypto.s: code/crypto.cpp.s
@@ -150,7 +211,7 @@ code/crypto.s: code/crypto.cpp.s
 
 # target to generate assembly for a file
 code/crypto.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/project.dir/build.make CMakeFiles/project.dir/code/crypto.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/code/crypto.cpp.s
 .PHONY : code/crypto.cpp.s
 
 # Help Target
@@ -161,7 +222,14 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... project"
+	@echo "... client"
+	@echo "... server"
+	@echo "... code/chat_client.o"
+	@echo "... code/chat_client.i"
+	@echo "... code/chat_client.s"
+	@echo "... code/chat_server.o"
+	@echo "... code/chat_server.i"
+	@echo "... code/chat_server.s"
 	@echo "... code/crypto.o"
 	@echo "... code/crypto.i"
 	@echo "... code/crypto.s"

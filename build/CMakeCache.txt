@@ -14,28 +14,35 @@
 # EXTERNAL cache entries
 ########################
 
+//The directory containing a CMake configuration file for Boost.
+Boost_DIR:PATH=Boost_DIR-NOTFOUND
+
+//Path to a file.
+Boost_INCLUDE_DIR:PATH=Boost_INCLUDE_DIR-NOTFOUND
+
 //Path to a program.
 CMAKE_ADDR2LINE:FILEPATH=/usr/bin/addr2line
 
 //Path to a program.
-CMAKE_AR:FILEPATH=/usr/bin/ar
+CMAKE_AR:FILEPATH=/usr/bin/llvm-ar
 
 //No help, variable specified on the command line.
-CMAKE_BUILD_TYPE:STRING=Debug
+CMAKE_BUILD_TYPE:STRING=Release
 
 //Enable/Disable color output during build.
 CMAKE_COLOR_MAKEFILE:BOOL=ON
 
 //No help, variable specified on the command line.
-CMAKE_CXX_COMPILER:FILEPATH=/usr/bin/g++
+CMAKE_CXX_COMPILER:FILEPATH=/usr/bin/clang++
 
-//A wrapper around 'ar' adding the appropriate '--plugin' option
-// for the GCC compiler
-CMAKE_CXX_COMPILER_AR:FILEPATH=/usr/bin/gcc-ar-9
+//LLVM archiver
+CMAKE_CXX_COMPILER_AR:FILEPATH=/usr/bin/llvm-ar-10
 
-//A wrapper around 'ranlib' adding the appropriate '--plugin' option
-// for the GCC compiler
-CMAKE_CXX_COMPILER_RANLIB:FILEPATH=/usr/bin/gcc-ranlib-9
+//`clang-scan-deps` dependency scanner
+CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS:FILEPATH=CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS-NOTFOUND
+
+//Generate index for LLVM archive
+CMAKE_CXX_COMPILER_RANLIB:FILEPATH=/usr/bin/llvm-ranlib-10
 
 //Flags used by the CXX compiler during all build types.
 CMAKE_CXX_FLAGS:STRING=
@@ -53,15 +60,16 @@ CMAKE_CXX_FLAGS_RELEASE:STRING=-O3 -DNDEBUG
 CMAKE_CXX_FLAGS_RELWITHDEBINFO:STRING=-O2 -g -DNDEBUG
 
 //No help, variable specified on the command line.
-CMAKE_C_COMPILER:FILEPATH=/usr/bin/gcc
+CMAKE_C_COMPILER:FILEPATH=/usr/bin/clang
 
-//A wrapper around 'ar' adding the appropriate '--plugin' option
-// for the GCC compiler
-CMAKE_C_COMPILER_AR:FILEPATH=/usr/bin/gcc-ar-9
+//LLVM archiver
+CMAKE_C_COMPILER_AR:FILEPATH=/usr/bin/llvm-ar-10
 
-//A wrapper around 'ranlib' adding the appropriate '--plugin' option
-// for the GCC compiler
-CMAKE_C_COMPILER_RANLIB:FILEPATH=/usr/bin/gcc-ranlib-9
+//`clang-scan-deps` dependency scanner
+CMAKE_C_COMPILER_CLANG_SCAN_DEPS:FILEPATH=CMAKE_C_COMPILER_CLANG_SCAN_DEPS-NOTFOUND
+
+//Generate index for LLVM archive
+CMAKE_C_COMPILER_RANLIB:FILEPATH=/usr/bin/llvm-ranlib-10
 
 //Flags used by the C compiler during all build types.
 CMAKE_C_FLAGS:STRING=
@@ -79,7 +87,7 @@ CMAKE_C_FLAGS_RELEASE:STRING=-O3 -DNDEBUG
 CMAKE_C_FLAGS_RELWITHDEBINFO:STRING=-O2 -g -DNDEBUG
 
 //Path to a program.
-CMAKE_DLLTOOL:FILEPATH=CMAKE_DLLTOOL-NOTFOUND
+CMAKE_DLLTOOL:FILEPATH=/usr/bin/llvm-dlltool
 
 //Flags used by the linker during all build types.
 CMAKE_EXE_LINKER_FLAGS:STRING=
@@ -132,13 +140,13 @@ CMAKE_MODULE_LINKER_FLAGS_RELEASE:STRING=
 CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO:STRING=
 
 //Path to a program.
-CMAKE_NM:FILEPATH=/usr/bin/nm
+CMAKE_NM:FILEPATH=/usr/bin/llvm-nm
 
 //Path to a program.
-CMAKE_OBJCOPY:FILEPATH=/usr/bin/objcopy
+CMAKE_OBJCOPY:FILEPATH=/usr/bin/llvm-objcopy
 
 //Path to a program.
-CMAKE_OBJDUMP:FILEPATH=/usr/bin/objdump
+CMAKE_OBJDUMP:FILEPATH=/usr/bin/llvm-objdump
 
 //Value Computed by CMake
 CMAKE_PROJECT_DESCRIPTION:STATIC=
@@ -150,10 +158,10 @@ CMAKE_PROJECT_HOMEPAGE_URL:STATIC=
 CMAKE_PROJECT_NAME:STATIC=fall2023-csc3380-project
 
 //Path to a program.
-CMAKE_RANLIB:FILEPATH=/usr/bin/ranlib
+CMAKE_RANLIB:FILEPATH=/usr/bin/llvm-ranlib
 
 //Path to a program.
-CMAKE_READELF:FILEPATH=/usr/bin/readelf
+CMAKE_READELF:FILEPATH=/usr/bin/llvm-readelf
 
 //Flags used by the linker during the creation of shared libraries
 // during all build types.
@@ -230,16 +238,16 @@ fall2023-csc3380-project_IS_TOP_LEVEL:STATIC=ON
 fall2023-csc3380-project_SOURCE_DIR:STATIC=/workspaces/csc3380-fall-2023-project-group-16
 
 //Path to a library.
-pkgcfg_lib_sodium_PKG_sodium:FILEPATH=/usr/lib/x86_64-linux-gnu/libsodium.so
+pkgcfg_lib_sodium_PKG_sodium:FILEPATH=/usr/local/lib/libsodium.so
 
 //Path to a file.
-sodium_INCLUDE_DIR:PATH=/usr/include
+sodium_INCLUDE_DIR:PATH=/usr/local/include
 
 //Path to a library.
-sodium_LIBRARY_DEBUG:FILEPATH=/usr/lib/x86_64-linux-gnu/libsodium.so
+sodium_LIBRARY_DEBUG:FILEPATH=/usr/local/lib/libsodium.so
 
 //Path to a library.
-sodium_LIBRARY_RELEASE:FILEPATH=/usr/lib/x86_64-linux-gnu/libsodium.so
+sodium_LIBRARY_RELEASE:FILEPATH=/usr/local/lib/libsodium.so
 
 //enable to statically link against sodium
 sodium_USE_STATIC_LIBS:BOOL=OFF
@@ -249,6 +257,10 @@ sodium_USE_STATIC_LIBS:BOOL=OFF
 # INTERNAL cache entries
 ########################
 
+//ADVANCED property for variable: Boost_DIR
+Boost_DIR-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: Boost_INCLUDE_DIR
+Boost_INCLUDE_DIR-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_ADDR2LINE
 CMAKE_ADDR2LINE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_AR
@@ -273,6 +285,8 @@ CMAKE_CTEST_COMMAND:INTERNAL=/home/codespace/.local/lib/python3.10/site-packages
 CMAKE_CXX_COMPILER-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_CXX_COMPILER_AR
 CMAKE_CXX_COMPILER_AR-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS
+CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_CXX_COMPILER_RANLIB
 CMAKE_CXX_COMPILER_RANLIB-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_CXX_FLAGS
@@ -289,6 +303,8 @@ CMAKE_CXX_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 CMAKE_C_COMPILER-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_C_COMPILER_AR
 CMAKE_C_COMPILER_AR-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CMAKE_C_COMPILER_CLANG_SCAN_DEPS
+CMAKE_C_COMPILER_CLANG_SCAN_DEPS-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_C_COMPILER_RANLIB
 CMAKE_C_COMPILER_RANLIB-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_C_FLAGS
@@ -395,55 +411,63 @@ CMAKE_UNAME:INTERNAL=/usr/bin/uname
 //ADVANCED property for variable: CMAKE_VERBOSE_MAKEFILE
 CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
 //Details about finding Sodium
-FIND_PACKAGE_MESSAGE_DETAILS_Sodium:INTERNAL=[/usr/lib/x86_64-linux-gnu/libsodium.so][/usr/lib/x86_64-linux-gnu/libsodium.so][/usr/include][v()]
+FIND_PACKAGE_MESSAGE_DETAILS_Sodium:INTERNAL=[/usr/local/lib/libsodium.so][/usr/local/lib/libsodium.so][/usr/local/include][v()]
 //ADVANCED property for variable: PKG_CONFIG_ARGN
 PKG_CONFIG_ARGN-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: PKG_CONFIG_EXECUTABLE
 PKG_CONFIG_EXECUTABLE-ADVANCED:INTERNAL=1
+//Components requested for this build tree.
+_Boost_COMPONENTS_SEARCHED:INTERNAL=
+//Last used Boost_INCLUDE_DIR value.
+_Boost_INCLUDE_DIR_LAST:INTERNAL=Boost_INCLUDE_DIR-NOTFOUND
+//Last used Boost_NAMESPACE value.
+_Boost_NAMESPACE_LAST:INTERNAL=boost
+//Last used Boost_USE_MULTITHREADED value.
+_Boost_USE_MULTITHREADED_LAST:INTERNAL=TRUE
 //linker supports push/pop state
 _CMAKE_LINKER_PUSHPOP_STATE_SUPPORTED:INTERNAL=TRUE
 __pkg_config_arguments_sodium_PKG:INTERNAL=QUIET;libsodium
 __pkg_config_checked_sodium_PKG:INTERNAL=1
 //ADVANCED property for variable: pkgcfg_lib_sodium_PKG_sodium
 pkgcfg_lib_sodium_PKG_sodium-ADVANCED:INTERNAL=1
-prefix_result:INTERNAL=/usr/lib/x86_64-linux-gnu
+prefix_result:INTERNAL=/usr/local/lib
 //ADVANCED property for variable: sodium_INCLUDE_DIR
 sodium_INCLUDE_DIR-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: sodium_LIBRARY_DEBUG
 sodium_LIBRARY_DEBUG-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: sodium_LIBRARY_RELEASE
 sodium_LIBRARY_RELEASE-ADVANCED:INTERNAL=1
-sodium_PKG_CFLAGS:INTERNAL=
+sodium_PKG_CFLAGS:INTERNAL=-I/usr/local/include
 sodium_PKG_CFLAGS_I:INTERNAL=
 sodium_PKG_CFLAGS_OTHER:INTERNAL=
 sodium_PKG_FOUND:INTERNAL=1
-sodium_PKG_INCLUDEDIR:INTERNAL=/usr/include
-sodium_PKG_INCLUDE_DIRS:INTERNAL=
-sodium_PKG_LDFLAGS:INTERNAL=-L/usr/lib/x86_64-linux-gnu;-lsodium
+sodium_PKG_INCLUDEDIR:INTERNAL=/usr/local/include
+sodium_PKG_INCLUDE_DIRS:INTERNAL=/usr/local/include
+sodium_PKG_LDFLAGS:INTERNAL=-L/usr/local/lib;-lsodium
 sodium_PKG_LDFLAGS_OTHER:INTERNAL=
-sodium_PKG_LIBDIR:INTERNAL=/usr/lib/x86_64-linux-gnu
+sodium_PKG_LIBDIR:INTERNAL=/usr/local/lib
 sodium_PKG_LIBRARIES:INTERNAL=sodium
-sodium_PKG_LIBRARY_DIRS:INTERNAL=/usr/lib/x86_64-linux-gnu
+sodium_PKG_LIBRARY_DIRS:INTERNAL=/usr/local/lib
 sodium_PKG_LIBS:INTERNAL=
 sodium_PKG_LIBS_L:INTERNAL=
 sodium_PKG_LIBS_OTHER:INTERNAL=
 sodium_PKG_LIBS_PATHS:INTERNAL=
 sodium_PKG_MODULE_NAME:INTERNAL=libsodium
-sodium_PKG_PREFIX:INTERNAL=/usr
-sodium_PKG_STATIC_CFLAGS:INTERNAL=
+sodium_PKG_PREFIX:INTERNAL=/usr/local
+sodium_PKG_STATIC_CFLAGS:INTERNAL=-I/usr/local/include
 sodium_PKG_STATIC_CFLAGS_I:INTERNAL=
 sodium_PKG_STATIC_CFLAGS_OTHER:INTERNAL=
-sodium_PKG_STATIC_INCLUDE_DIRS:INTERNAL=
-sodium_PKG_STATIC_LDFLAGS:INTERNAL=-L/usr/lib/x86_64-linux-gnu;-lsodium;-pthread
+sodium_PKG_STATIC_INCLUDE_DIRS:INTERNAL=/usr/local/include
+sodium_PKG_STATIC_LDFLAGS:INTERNAL=-L/usr/local/lib;-lsodium;-lpthread;-pthread
 sodium_PKG_STATIC_LDFLAGS_OTHER:INTERNAL=-pthread
 sodium_PKG_STATIC_LIBDIR:INTERNAL=
-sodium_PKG_STATIC_LIBRARIES:INTERNAL=sodium
-sodium_PKG_STATIC_LIBRARY_DIRS:INTERNAL=/usr/lib/x86_64-linux-gnu
+sodium_PKG_STATIC_LIBRARIES:INTERNAL=sodium;pthread
+sodium_PKG_STATIC_LIBRARY_DIRS:INTERNAL=/usr/local/lib
 sodium_PKG_STATIC_LIBS:INTERNAL=
 sodium_PKG_STATIC_LIBS_L:INTERNAL=
 sodium_PKG_STATIC_LIBS_OTHER:INTERNAL=
 sodium_PKG_STATIC_LIBS_PATHS:INTERNAL=
-sodium_PKG_VERSION:INTERNAL=1.0.18
+sodium_PKG_VERSION:INTERNAL=1.0.19
 sodium_PKG_libsodium_INCLUDEDIR:INTERNAL=
 sodium_PKG_libsodium_LIBDIR:INTERNAL=
 sodium_PKG_libsodium_PREFIX:INTERNAL=

@@ -1,3 +1,4 @@
-/workspaces/csc3380-fall-2023-project-group-16/build/CMakeFiles/project.dir
+/workspaces/csc3380-fall-2023-project-group-16/build/CMakeFiles/client.dir
+/workspaces/csc3380-fall-2023-project-group-16/build/CMakeFiles/server.dir
 /workspaces/csc3380-fall-2023-project-group-16/build/CMakeFiles/edit_cache.dir
 /workspaces/csc3380-fall-2023-project-group-16/build/CMakeFiles/rebuild_cache.dir
