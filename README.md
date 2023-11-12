@@ -5,15 +5,6 @@
 See here for more information about the [course project][project]
 
 [project]: https://teaching.hkaiser.org/fall2023/csc3380/assignments/project.html
-
-
-crypto documentation:
-connor:
-i made "crypto.cpp" it just is the bare skeleton of key generation
-basically lets you take a password and a salt, creates a hashed password, and uses that hashed password to generate public/private keypair
-
-this way the only thing the user remembers is the password, basically.
-
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 libsodium documentation:
 https://doc.libsodium.org/
@@ -27,7 +18,11 @@ make && make check
 sudo make install
 cd ..
 cd ..
+sudo apt-get update
+sudo apt-get install libasio-dev
 
+//
 cmake --build ./build
 
-./build/project
+./build/server 1225
+./build/client localhost 1225
