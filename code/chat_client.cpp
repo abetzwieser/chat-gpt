@@ -8,11 +8,9 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-// to build: g++ chat_client.cpp -o chat_client -L /usr/lib/ -pthread
-// updated:
+// make sure to make/build the libsodium library as written out in how_to_add_package.txt
 // build with cmake --build ./build
 // run with ./build/client localhost 1225
-// you might have to get the sodium shit, like run the little apk_get or whatever from the main branch stuff. dunno. works on my machine.
 
 #include <cstdlib>
 #include <deque>
@@ -64,7 +62,7 @@ public:
 
   void set_my_username(char* username)
   {
-    my_username = username;
+    memcpy(my_username, username, chat_message::username_length);
   }
 
 private:
@@ -102,13 +100,11 @@ private:
       read_msg_.decode_key();
       read_msg_.decode_usernames();
 
-      // std::cout << "read_msg_.data() in handle_read_body is: " << read_msg_.data() << std::endl;
-
       if (read_msg_.has_key())
       {
         std::cout << "User " << read_msg_.source_username() << " is connected." << std::endl;
 
-        // prevent own key from going into storage-- we already know our own key
+        // prevent own key from going into storage -- we already know our own key
         if((strcmp(read_msg_.source_username(), get_my_username()) != 0))
         {
 
@@ -118,7 +114,6 @@ private:
 
           key_list_.insert({read_msg_.source_username(), public_key});
         }
-        // std::cout << "value associated with " << read_msg_.username() << " is " << key_list_.at(read_msg_.username()) << std::endl;
       }
       else
       {
@@ -184,7 +179,7 @@ private:
   chat_message_queue write_msgs_;
   char* private_key_;
   std::map<std::string, unsigned char*> key_list_;
-  char* my_username;
+  char my_username[chat_message::username_length] = "";
 };
 
 int main(int argc, char* argv[])
@@ -203,8 +198,6 @@ int main(int argc, char* argv[])
     tcp::resolver::results_type endpoints = resolver.resolve(argv[1], argv[2]);
 
     chat_client c(io_context, endpoints);
-    char defaultname[] = "";  // because of how username checking works, setting a default username prevents segfaults when a message comes before a user set their name
-    c.set_my_username(defaultname); // try making it so client default makes username "" when it is created
 
     asio::thread t(boost::bind(&asio::io_context::run, &io_context));
     
