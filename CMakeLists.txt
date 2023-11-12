@@ -9,6 +9,7 @@ set(CLIENT_SOURCES
    code/chat_message.hpp
    code/crypto.cpp
     code/crypto.hpp
+    code/nonce.hpp
 )
 
 set(SERVER_SOURCES 
