@@ -137,3 +137,46 @@ const char* decrypt_message(unsigned char* private_key, const unsigned char* sen
 
 // return 0;
 // }
+int main(){
+  if (sodium_init() < 0) {
+        std::cerr << "libsodium failed to initialize" << std::endl;
+        return 1;
+    }
+
+  SequentialNonce nonceGen;
+  
+  unsigned char test_public_key[crypto_box_SEEDBYTES];
+  unsigned char test_private_key[crypto_box_SEEDBYTES];
+  std::string test_password;
+  unsigned char test_salt[] = "test";
+
+  //key gen
+  std::cout << "Please enter your password" << std::endl;
+  std::getline(std::cin, test_password);
+  const char* pw_point = test_password.c_str();
+  generate_keypair(pw_point, test_salt, test_public_key, test_private_key);
+  std::string message;
+
+  std::cout<<"Enter a message: "<<std::endl;
+
+  std::cin >> message;
+  const char* message_point = message.c_str();
+  //std::cout<<"Message to be encrypted: " << message << " | Length: " << message.length() << " | C.str(): "<< message_p << std::endl;
+
+  const char* encryptedMessage = encrypt_message(test_private_key, test_public_key, message_point, nonceGen);
+ 
+  if (encryptedMessage != nullptr) 
+  {
+    // Decrypt the message
+    const char* decryptedMessage = decrypt_message(test_private_key, test_public_key, encryptedMessage);
+    if (decryptedMessage != nullptr) 
+    {
+      std::cout << "Decrypted Message: " << decryptedMessage << std::endl;
+
+      // Remember to free the allocated memory
+      free(const_cast<char*>(encryptedMessage));  // Free the memory allocated by strdup
+      free(const_cast<char*>(decryptedMessage));  // Free the memory allocated by strdup
+    }
+  }
+  return 0;   
+}
