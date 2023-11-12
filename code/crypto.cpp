@@ -49,8 +49,6 @@ void generate_keypair(const char* user_password, unsigned char* salt, unsigned c
 std::vector<unsigned char> encrypt_message(unsigned char* sendersk, unsigned char* recpk, const unsigned char* message_or_whatever, const unsigned char* nonce){ 
 
   size_t messagelength = strlen(reinterpret_cast<const char*>(message_or_whatever)) + 1;
-  //int messagelength = message_or_whatever.size() + 1;
-  //std::cout<<"Message length: " << messagelength << std::endl;
 
   unsigned char cipher[messagelength + crypto_box_MACBYTES];
 
@@ -63,19 +61,15 @@ std::vector<unsigned char> encrypt_message(unsigned char* sendersk, unsigned cha
   return cipherVec;
 }
 
-void decrypt_message(unsigned char* private_key, const unsigned char* sender_pk, const std::vector<unsigned char>& cipher,  const unsigned char* nonce){
-  // uses private key on message, returns decrypted string or something
-    std::vector<unsigned char> decrypted(cipher.size());
+std::vector<unsigned char> decrypt_message(unsigned char* private_key, const unsigned char* sender_pk, const std::vector<unsigned char>& cipher,  const unsigned char* nonce){
 
-    //std::cout<< "Decrypted size:" << decrypted.size() << std::endl;
+    std::vector<unsigned char> decrypted(cipher.size());
   
     if (crypto_box_open_easy(decrypted.data(), cipher.data(), cipher.size(), nonce, sender_pk, private_key) != 0) {
         std::cerr << "Decryption failed. Message tampered." << std::endl;
-        // Handle tampered message appropriately
-        return;
     }
-    //implement std::vector return
-    std::cout << "Decrypted message: " << decrypted.data() << std::endl;
+  
+    return decrypted; 
 }
 
 // int main()
