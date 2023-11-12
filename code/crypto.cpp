@@ -6,7 +6,7 @@
 #include <vector>
 #include <iomanip>
 #include <vector>
-
+#include <nonce.h>
 
 //note: salt is not a "secret", save the salt somewhere.
 // like in text document or whatever
@@ -23,21 +23,17 @@
 unsigned char salt[] = {"this is salt"};
 #define PASSWORD "password" // remove this line later
 //
-class SequentialNonce {
-public:
-    SequentialNonce() {
-        if (sodium_init() < 0) {
-            std::cerr << "libsodium failed to initialize" << std::endl;
-            // Handle initialization failure
-        }
+SequentialNonce::SequentialNonce() : counter(0) {
+    if (sodium_init() < 0) {
+        std::cerr << "libsodium failed to initialize" << std::endl;
+        // Handle initialization failure
     }
-    // Get a random nonce
-    std::string getRandomNonce() {
-        std::string nonce(crypto_secretbox_NONCEBYTES, 0);
-        randombytes_buf(nonce.data(), nonce.size());
-        return nonce;
-    }
-};
+}
+std::string SequentialNonce::getRandomNonce() {
+    std::string nonce(crypto_secretbox_NONCEBYTES, 0);
+    randombytes_buf(nonce.data(), nonce.size());
+    return nonce;
+}
 // optionally one day make a salt-making function:
 //randombytes_buf(salt, sizeof salt); // create unique random salt
 
