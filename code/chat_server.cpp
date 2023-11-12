@@ -44,7 +44,7 @@ typedef boost::shared_ptr<chat_participant> chat_participant_ptr;
 
 //----------------------------------------------------------------------
 
-class chat_room // collects & organizes client connections, or chat_participant_ptr's
+class chat_room // collects & organizes client connections, aka chat_participant_ptr's
 {
 public:
   void join(chat_participant_ptr participant)
@@ -54,54 +54,46 @@ public:
 
   void add_user(const char* name, chat_participant_ptr participant)
   {
-    std::string testing = name;
-    users_.insert({testing, participant});
-    // send all pre-existing keys to client
-    // fix this later
-    std::cout << "name of added user is: " << name <<std::endl;
+    users_.insert({name, participant}); // associate participant with username
 
     char target_user[chat_message::username_length + 1];
     memcpy(target_user, name, chat_message::username_length);
 
-
+    // send all pre-existing key/client pairs to newly connected client
     for (auto it = key_list_.begin(); it != key_list_.end(); ++it)
     {
       std::string username = it->first;
 
-      std::cout << "source username is" << username << std::endl;
-
       char *source_user = new char[username.length() + 1];
       strcpy(source_user, username.c_str());
 
-      if (target_user != source_user)
-      {
-        chat_message msg;
-        msg.encode_key(true);
+      chat_message msg;
+      msg.encode_key(true);
   
-        msg.encode_usernames(source_user, target_user);
+      msg.encode_usernames(source_user, target_user);
       
-        std::string str_key = it->second;
-        char *key = new char[str_key.length() + 1];
-        strcpy(key, str_key.c_str());
-        msg.body_length(strlen(key));
-        memcpy(msg.body(), key, msg.body_length());
+      std::string str_key = it->second;
+      char *key = new char[str_key.length() + 1];
+      strcpy(key, str_key.c_str());
+      msg.body_length(strlen(key));
+      memcpy(msg.body(), key, msg.body_length());
       
-        msg.encode_header();
+      msg.encode_header();
 
-        //copied code from deliver (chat_room)
-        auto temp_it = users_.find(name); // create iterator pointing to the username, chat_participant_ptr
-        chat_participant_ptr user_ = temp_it->second; // get the chat_participant_ptr associated with the username
-        std::set<chat_participant_ptr> temp;
-        temp.insert(user_);
-        if (temp_it != users_.end())
-        {
-          std::for_each(temp.begin(), temp.end(),
-          boost::bind(&chat_participant::deliver,
-            boost::placeholders::_1, boost::ref(msg)));
+      // edit later? temp solution
+      auto temp_it = users_.find(name); // create iterator pointing to the username, chat_participant_ptr
+      chat_participant_ptr user_ = temp_it->second; // get the chat_participant_ptr associated with the username
+      std::set<chat_participant_ptr> temp;
+      temp.insert(user_);
+      if (temp_it != users_.end()) // if the iterator found the username in the map of users
+      {
+        std::for_each(temp.begin(), temp.end(),
+        boost::bind(&chat_participant::deliver,
+          boost::placeholders::_1, boost::ref(msg)));
           // boost::bind(&chat_participant::deliver, &user_,
           //   boost::placeholders::_1, boost::ref(msg));
-        }
       }
+      
     }
   }
 
@@ -114,44 +106,21 @@ public:
 
   void deliver(const chat_message& msg)
   {
-    std::cout << "message arrives in deliver (chat_room): " << msg.data() << std::endl;
     if (msg.has_key()) // if message contains public key, send to all connected clients
     {
-      //
-      //
-      // cHECKING FOR SIZE OF PUBLIC KEY IN TRNASIT
-      // PLEAES DELETE LATER
-      // convert msg.body() to char* from const char*
-      //char* temp[strlen(msg.body())];
-      //memcpy(temp, msg.body(), strlen(msg.body()));
-      char* temp[37 + 1]; // take the header length <- body_length i think idk
-      memcpy(temp, msg.body(), 37 + 1);
-      unsigned char* public_key = reinterpret_cast<unsigned char*>(temp);
-
-      std::cout << "\npublic key:\n";
-      for(int i = 0; i < 32; i++)
-      {
-          printf("%x", public_key[i]); // prints as hex, only for testing, delete later
-          //std::cout << std::bitset<6>(public_key[i]) << "\n";
-      }
-      std::cout << std::endl;
-
-      std::cout << "size of public key is : " << sizeof(public_key) << std::endl;
-
-      key_list_.insert({msg.source_username(), msg.body()});
+      key_list_.insert({msg.source_username(), msg.body()}); // add key to map of key/client pairs
 
       std::for_each(participants_.begin(), participants_.end(),
           boost::bind(&chat_participant::deliver,
             boost::placeholders::_1, boost::ref(msg)));
     }
-    else // if message doesn't contain public key, send to username stored in msg (aka the user whose public key)
-         // was used to encrypt the message
+    else // if message doesn't contain public key, send to intended message recipient
     {
       auto it = users_.find(msg.target_username()); // create iterator pointing to the username, chat_participant_ptr
       chat_participant_ptr user_ = it->second; // get the chat_participant_ptr associated with the username
       std::set<chat_participant_ptr> temp;
       temp.insert(user_);
-      if (it != users_.end()) // if iterator doesn't point to the end (aka the user/client doesn't exist)
+      if (it != users_.end()) // if iterator doesn't point to the end (the user/client doesn't exist)
                               // send message to the client
       {
         std::for_each(temp.begin(), temp.end(),
@@ -199,11 +168,11 @@ public:
 
   void deliver(const chat_message& msg)
   {
-    std::cout << "read_msg_.data() arrives in deliver (chat_session): " << msg.data() << std::endl;
     bool write_in_progress = !write_msgs_.empty();
-    write_msgs_.push_back(msg);
+    write_msgs_.push_back(msg); // add message to queue of messages to be written
     if (!write_in_progress)
     {
+      // write the message & direct to handle_write()
       asio::async_write(socket_,
           asio::buffer(write_msgs_.front().data(),
             write_msgs_.front().length()),
@@ -212,14 +181,16 @@ public:
     }
   }
 
+  // handles what to do after header is read into buffer
   void handle_read_header(const asio::error_code& error)
   {
     if (!error && read_msg_.decode_header())
     {
-      // std::cout << "read_msg.data() contains: " << read_msg_.data() << std::endl;
+      // based on decoded header length, read in appropriate length of the rest of the message from the buffer
+      // & direct to handle_read_message()
       asio::async_read(socket_,
-        asio::buffer(read_msg_.data() + chat_message::header_length, chat_message::total_encoding_length - chat_message::header_length + read_msg_.body_length()), // should really edit how body_length is stored later
-        boost::bind(&chat_session::handle_read_body, shared_from_this(),
+        asio::buffer(read_msg_.data() + chat_message::header_length, read_msg_.message_length()),
+        boost::bind(&chat_session::handle_read_message, shared_from_this(),
           asio::placeholders::error));
     }
     else
@@ -228,28 +199,26 @@ public:
     }
   }
 
-  void handle_read_body(const asio::error_code& error)
+  // handles what to do after the rest of message (not header) is read into buffer
+  void handle_read_message(const asio::error_code& error)
   {
     if (!error)
     {
-      std::cout << "message was received" << std::endl;
-      std::cout << "read_msg.data() contains: " << read_msg_.data() << std::endl;
       read_msg_.decode_key();
+      read_msg_.decode_usernames();
 
+      // if this is the client's first message, need to set their username & add the assocation
+      // to the chat room
       if (first_msg_)
       {
         first_msg_ = false;
-        read_msg_.decode_usernames();
-        set_user(read_msg_.source_username());
+        set_user(read_msg_.source_username()); // set username of this client connection
 
-        room_.add_user(user_, shared_from_this()); // add association between client pointer & client username in chat_room's list
+        room_.add_user(user_, shared_from_this()); // add association between client pointer & username in chat room's list
         std::cout << "User: " << user_ << " has connected." << std::endl;
       }
-
-      read_msg_.decode_usernames();
     
-      std::cout << "read_msg_.data() arrives in read_body: " << read_msg_.data() << std::endl;
-      room_.deliver(read_msg_);
+      room_.deliver(read_msg_); // has chat room figure out where to deliver message
       asio::async_read(socket_,
           asio::buffer(read_msg_.data(), chat_message::header_length),
           boost::bind(&chat_session::handle_read_header, shared_from_this(),
@@ -268,6 +237,8 @@ public:
       write_msgs_.pop_front(); // remove whatever message that was just sent from queue
       if (!write_msgs_.empty())
       {
+        // writes whatever message remains at the front of the queue
+        // & redirects to itself (handle_write())
         asio::async_write(socket_,
             asio::buffer(write_msgs_.front().data(),
               write_msgs_.front().length()),
@@ -312,6 +283,8 @@ public:
 
   void start_accept()
   {
+    // create/accept new client connection
+    // & direct to handle_accept
     chat_session_ptr new_session(new chat_session(io_context_, room_));
     acceptor_.async_accept(new_session->socket(),
         boost::bind(&chat_server::handle_accept, this, new_session,
@@ -323,7 +296,7 @@ public:
   {
     if (!error)
     {
-      session->start();
+      session->start(); // start the new client connection
     }
 
     start_accept();
@@ -346,7 +319,7 @@ int main(int argc, char* argv[])
   {
     if (argc < 2)
     {
-      std::cerr << "Usage: chat_server <port> [<port> ...]\n";
+      std::cerr << "Usage: server <port> [<port> ...]\n";
       return 1;
     }
 

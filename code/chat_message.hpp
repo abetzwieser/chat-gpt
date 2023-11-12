@@ -30,7 +30,7 @@ public:
     max_body_length = 512,
     
     
-    // offsets for encoding/decoding
+    // offsets for encoding / decoding
     key_offset = header_length,
     source_user_offset = header_length + key_length,
     target_user_offset = header_length + key_length + username_length,
@@ -42,6 +42,7 @@ public:
   {
   }
 
+  // returns pointer to message buffer
   const char* data() const
   {
     return data_;
@@ -52,32 +53,36 @@ public:
     return data_;
   }
 
+  // returns total length of current message buffer
   size_t length() const
   {
-    // og
-    // return header_length + body_length_;
     return total_encoding_length + body_length_;
   }
 
-  const char* body() const
+  // returns pointer to start of message body (the actual message content)
+  const char* body() const 
   {
-    // og
-    // return data_ + header_length;
     return data_ + total_encoding_length;
   }
 
   char* body()
   {
-    // og
-    // return data_ + header_length;
     return data_ + total_encoding_length;
   }
 
+  // returns length of message buffer sans header
+  size_t message_length() const
+  {
+    return chat_message::total_encoding_length - chat_message::header_length + body_length_;
+  }
+
+  // returns length of message content
   size_t body_length() const
   {
     return body_length_;
   }
 
+  // sets length of message content
   void body_length(size_t new_length)
   {
     body_length_ = new_length;
@@ -85,6 +90,7 @@ public:
       body_length_ = max_body_length;
   }
 
+  // reads in header from buffer to determine length of message content (body_length_)
   bool decode_header()
   {
     using namespace std; // For strncat and atoi.
@@ -99,6 +105,7 @@ public:
     return true;
   }
 
+  // writes in header (the length of message content, aka body_length_) to buffer
   void encode_header()
   {
     using namespace std; // For sprintf and memcpy.
@@ -107,34 +114,10 @@ public:
     memcpy(data_, header, header_length);
   }
 
-  const char* username() const
-  {
-    return username_;
-  }
-
-  char* username()
-  {
-    return username_;
-  }
-
-  void decode_username()
-  {
-    using namespace std;
-    char username[username_length + 1] = "";
-    strncat(username, data_ + header_length + key_length, username_length);
-    // removing whitespaces from the username
-    std::remove(username, username + strlen(username) + 1, ' ');
-    memcpy(username_, username, username_length);
-  }
-
+  // returns name of message sender
   const char* source_username() const
   {
     return source_user_;
-  }
-
-  const char* target_username() const
-  {
-    return target_user_;
   }
 
   char* source_username()
@@ -142,19 +125,18 @@ public:
     return source_user_;
   }
 
+  // returns name of intended message recipient
+  const char* target_username() const
+  {
+    return target_user_;
+  }
+
   char* target_username()
   {
     return target_user_;
   }
 
-  void encode_username(char* const user)
-  {
-    using namespace std;
-    char username[username_length + 1] = "";
-    sprintf(username, "%16s", user);
-    memcpy(data_ + header_length + key_length, username, username_length);
-  }
-
+  // reads in, trims, & stores names of message sender & intended message recipient from buffer
   void decode_usernames()
   {
     using namespace std;
@@ -174,6 +156,7 @@ public:
     memcpy(target_user_, target_username, username_length);
   }
 
+  // writes to buffer names of message sender & intended message recipient
   void encode_usernames(char* const source_user, char* const target_user)
   {
     using namespace std; 
@@ -189,16 +172,15 @@ public:
     memcpy(data_ + target_user_offset, target_username, username_length);
   }
 
+  // return value indicates whether message body is supposed to contain a public key or not
   bool has_key() const
   {
     return key_signal_;
   }
 
+  // reads in key signal from buffer & stores it
   void decode_key()
   {
-    // based off of decode header
-    // decode key, then store result in a variable
-    // while also returning true/false
     using namespace std; // For strncat and atoi.
     char key_byte[key_length + 1] = "";
     strncat(key_byte, data_ + key_offset, key_length);
@@ -214,15 +196,16 @@ public:
     }
   }
 
+  // writes to buffer a number ( 1 or 0 ) signaling whether message contains a public key
   void encode_key(bool has_key)
   {
     using namespace std;
     char key[key_length + 1] = "";
-    if (has_key) // byte = 1 signals message contains public key
+    if (has_key) // write in 1 to signal message contains public key
     {
       sprintf(key, "%4d", 1);
     }
-    else // byte = 0 signals message doesn't contain public key
+    else // write in 0 to signal message doesn't contain public key
     {
       sprintf(key, "%4d", 0);
     }
@@ -231,9 +214,8 @@ public:
   }
 
 private:
-  char data_[header_length + username_length + key_length + max_body_length];
+  char data_[header_length + username_length + key_length + max_body_length]; // the buffer
   size_t body_length_;
-  char username_[username_length];
   char target_user_[username_length];
   char source_user_[username_length];
   bool key_signal_;
