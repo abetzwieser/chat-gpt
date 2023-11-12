@@ -2,6 +2,7 @@
 #include <sodium.h>
 #include <string.h>
 #include <bitset>
+#include <vector>
 
 
 //note: salt is not a "secret", save the salt somewhere.
@@ -43,12 +44,31 @@ void generate_keypair(const char* user_password, unsigned char* salt, unsigned c
     std::cout << std::endl;
 }
 
-void encrypt_message(unsigned char* public_key, char message_or_whatever){
-  // uses public key on message, returns encrypted string or something
+std::vector<unsigned char> encrypt_message(unsigned char* sendersk, unsigned char* recpk, const unsigned char* message_or_whatever, const unsigned char* nonce){ 
+
+  size_t messagelength = strlen(reinterpret_cast<const char*>(message_or_whatever)) + 1;
+
+  unsigned char cipher[messagelength + crypto_box_MACBYTES];
+
+  if (crypto_box_easy(cipher, message_or_whatever, 
+  messagelength, nonce, recpk, sendersk) != 0) {
+    std::cout<<"Encryption failed. Message tampered."<<std::endl;
+  }
+
+  std::vector<unsigned char> cipherVec(cipher, cipher + messagelength + crypto_box_MACBYTES);
+  return cipherVec;
 }
 
-void decrypt_message(unsigned char* private_key, char message_or_whatever){
-  // uses private key on message, returns decrypted string or something
+
+std::vector<unsigned char> decrypt_message(unsigned char* private_key, const unsigned char* sender_pk, const std::vector<unsigned char>& cipher,  const unsigned char* nonce){
+
+    std::vector<unsigned char> decrypted(cipher.size());
+  
+    if (crypto_box_open_easy(decrypted.data(), cipher.data(), cipher.size(), nonce, sender_pk, private_key) != 0) {
+        std::cerr << "Decryption failed. Message tampered." << std::endl;
+    }
+  
+    return decrypted; 
 }
 
 int main()
