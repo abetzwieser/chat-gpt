@@ -55,7 +55,6 @@ void generate_keypair(const char* user_password, unsigned char* salt, unsigned c
     sodium_memzero(masterkey, KEY_LEN); // zeroes out masterkey in memory
 }
 
-
 // //takes sender secret key, and receiver public key, encrypts message
 // const char* encrypt_message(unsigned char* sender_privk, unsigned char* rec_pubk, const char* message_or_whatever, SequentialNonce& nonceGen){ 
 
@@ -96,34 +95,47 @@ void generate_keypair(const char* user_password, unsigned char* salt, unsigned c
 
 //     return strdup(decrypted.c_str());
 // }
-//takes sender secret key, and receiver public key, encrypts message
-const char* encrypt_message(unsigned char* sender_privk, unsigned char* rec_pubk, const char* message_or_whatever, SequentialNonce& nonceGen){ 
 
-  std::string nonce = nonceGen.getRandomNonce();
+std::string encrypt_message(unsigned char* sender_privk, unsigned char* rec_pubk, const char* message_or_whatever, SequentialNonce& nonceGen){ 
+
+  //std::string nonce = nonceGen.getRandomNonce();
+  std::string nonce = "111100001111000011110000";
   size_t messageLength = strlen(message_or_whatever);
-  std::string cipher(nonce + std::string(crypto_box_MACBYTES + messageLength, 0));
+  unsigned char testcipher[messageLength + crypto_box_MACBYTES];
+  //std::string cipher(nonce + std::string(crypto_box_MACBYTES + messageLength, 0));
 
-  if (crypto_box_easy(reinterpret_cast<unsigned char*>(cipher.data() + nonce.size()), 
+
+  if (crypto_box_easy(testcipher, 
     reinterpret_cast<const unsigned char*>(message_or_whatever), 
     messageLength, reinterpret_cast<const unsigned char*>(nonce.data()), 
     rec_pubk, sender_privk) != 0) {
 
     std::cout<<"Encryption failed. Message tampered."<<std::endl;
   }
-
-  return strdup(cipher.c_str());
+  std::string cipherout( reinterpret_cast<char const*>(testcipher), messageLength+crypto_box_MACBYTES);
+  return cipherout;
+  //return strdup(cipher.c_str());
 }
 
-const char* decrypt_message(unsigned char* private_key, const unsigned char* sender_pubk, const char* cipher_with_nonce) {
-    std::string nonce(cipher_with_nonce, crypto_box_NONCEBYTES);
-    std::string ciphertext(cipher_with_nonce + crypto_box_NONCEBYTES);
+std::string decrypt_message(unsigned char* private_key, const unsigned char* sender_pubk, const char* cipher_with_nonce, int cipher_size) {
+    
+    std::string nonce = "111100001111000011110000";
+    std::cout<<"\nnoncelength:\n"<<nonce.length();
+    std::cout << std::endl;
+    //std::string nonce(cipher_with_nonce, crypto_box_NONCEBYTES);
+    //std::string ciphertext(cipher_with_nonce + crypto_box_NONCEBYTES);
 
-    // Allocate space for the decrypted message
-    std::string decrypted(ciphertext.size(), 0);
+    //std::string decrypted(ciphertext.size(), 0);
 
-    if (crypto_box_open_easy(reinterpret_cast<unsigned char*>(decrypted.data()),
-                             reinterpret_cast<const unsigned char*>(ciphertext.data()),
-                             ciphertext.size(),
+      //std::string decryptedmsg(cipher_size - crypto_box_MACBYTES, 0); //0 out message holder
+      unsigned char* msgtest = new unsigned char[cipher_size - crypto_box_MACBYTES + 1];
+    // unsigned char message[45];
+    //std::fill(message, message + 45, 0); // 0 out thing
+    std::cout << "\nmsg size:" ;
+    std::cout << cipher_size - crypto_box_MACBYTES << std::endl;
+    if (crypto_box_open_easy(msgtest,
+                             reinterpret_cast<const unsigned char*>(cipher_with_nonce),
+                             cipher_size,
                              reinterpret_cast<const unsigned char*>(nonce.data()),
                              sender_pubk,
                              private_key) != 0) {
@@ -132,12 +144,12 @@ const char* decrypt_message(unsigned char* private_key, const unsigned char* sen
     }
 
     // Remove the padding (crypto_box_MACBYTES)
-    decrypted.resize(decrypted.size() - crypto_box_MACBYTES);
+    //decrypted.resize(decrypted.size() - crypto_box_MACBYTES);
 
-    return strdup(decrypted.c_str());
+    //return strdup(decrypted.c_str());
+      std::string message_out( reinterpret_cast<const char*>(msgtest), cipher_size-crypto_box_MACBYTES);
+      return message_out;
 }
-
-
 // int main()
 // {
 // // there's probably a better way to do this but it will work if we do it this way
