@@ -20,6 +20,10 @@
 #include "chat_message.hpp"
 #include "crypto.hpp"
 #include <sodium.h>
+#include <bitset>
+
+//#include "nonce.hpp"
+
 
 using asio::ip::tcp;
 
@@ -64,6 +68,19 @@ public:
   {
     memcpy(my_username, username, chat_message::username_length);
   }
+  void set_private_key(unsigned char* priv_key){
+    memcpy(private_key, priv_key, crypto_box_SEEDBYTES);
+  }
+
+  int check_if_initialized()
+  {
+    return initialized;
+  }
+
+  void initialize()
+  {
+    initialized = 1;
+  }
 
 private:
 
@@ -97,31 +114,79 @@ private:
   {
     if (!error)
     {
+      if(check_if_initialized() == 1) // don't receive messages until user info is setup
+      {
       read_msg_.decode_key();
       read_msg_.decode_usernames();
-
       if (read_msg_.has_key())
       {
         std::cout << "User " << read_msg_.source_username() << " is connected." << std::endl;
-
         // prevent own key from going into storage -- we already know our own key
         if((strcmp(read_msg_.source_username(), get_my_username()) != 0))
         {
-
+          
           // make unsigned char* -> char* conversion
           // char* -> unsigned char* conversion in crypto.cpp / hpp
           unsigned char* public_key = reinterpret_cast<unsigned char*>(read_msg_.body());
+          
 
           key_list_.insert({read_msg_.source_username(), public_key});
+
+          std::cout << "\npublic key received from the message:\n";  
+          for(int i = 0; i < 32; i++)
+          {
+              printf("%x",public_key[i]); // prints as hex, only for testing, delete later
+              //std::cout << std::bitset<8>(public_key[i]) << "\n";
+          }
+          std::cout<<std::endl;
+
+                  std::cout<< "keylist:\n";
+        for (auto& t : key_list_)
+        std::cout << t.first << " " 
+              << t.second << " " 
+              "\n";
         }
       }
       else
-      {
+      {//// decrypting stuff
         std::cout << read_msg_.source_username() << ": ";
-        std::cout.write(read_msg_.body(), read_msg_.body_length());
+
+         auto pk_it = key_list_.find(read_msg_.source_username());
+         unsigned char* sender_public_key = pk_it->second;
+         
+         //unsigned char nonce[] = "1";
+         //char decrypted_msg = decrypt_message(private_key, sender_public_key, read_msg_.body(),nonce);
+  std::cout << "\nprivatekey:\n";
+    for(int i = 0; i < sizeof(private_key); i++)
+    {
+        printf("%x",private_key[i]); // prints as hex, only for testing, delete later
+        //std::cout << std::bitset<6>(public_key[i]) << "\n";
+    }
+std::cout << "\nsenderpub:" << std::endl;
+    for(int i = 0; i < crypto_box_SEEDBYTES; i++)
+    {
+        printf("%x",sender_public_key[i]); // prints as hex, only for testing, delete later
+        //std::cout << std::bitset<6>(public_key[i]) << "\n";
+    }
+
+const unsigned char* unsigned_body = reinterpret_cast<const unsigned char*>(read_msg_.body());
+std::cout << "\nmsgbody:" << std::endl;
+    for(int i = 0; i < strlen(read_msg_.body()); i++)
+    {
+        printf("%x",unsigned_body[i]); // prints as hex, only for testing, delete later
+        //std::cout << std::bitset<6>(public_key[i]) << "\n";
+    }
+         const char* decrypted_msg = decrypt_message(private_key, sender_public_key, read_msg_.body());
+        //std::cout.write(read_msg_.body(), read_msg_.body_length());
+        std::cout.write(decrypted_msg, strlen(decrypted_msg));
         std::cout << "\n";
-      }
-      // have to decrypt message first (if it is an encrypted message)
+      } 
+      }//
+
+
+
+
+      // 
       asio::async_read(socket_,
         asio::buffer(read_msg_.data(), chat_message::header_length),
           boost::bind(&chat_client::handle_read_header, this,
@@ -180,6 +245,8 @@ private:
   char* private_key_;
   std::map<std::string, unsigned char*> key_list_;
   char my_username[chat_message::username_length] = "";
+  unsigned char private_key[crypto_box_SEEDBYTES];
+  int initialized = 0;
 };
 
 int main(int argc, char* argv[])
@@ -191,7 +258,7 @@ int main(int argc, char* argv[])
       std::cerr << "Usage: client <host> <port>\n";
       return 1;
     }
-
+   SequentialNonce nonceGen; // for crypto nonce thing
     asio::io_context io_context;
 
     tcp::resolver resolver(io_context);
@@ -225,7 +292,27 @@ int main(int argc, char* argv[])
     std::cin >> test_password;
     unsigned char* username_ptr = reinterpret_cast<unsigned char*>(user); // not great to cast like this but it doesn't matter 
     generate_keypair(test_password.c_str(), username_ptr, test_public_key, test_private_key);
-    
+    c.set_private_key(test_private_key);  // 
+    c.initialize();
+
+
+//
+    std::cout << "public key:\n";  
+    for(int i = 0; i < 32; i++)
+    {
+        printf("%x",test_public_key[i]); // prints as hex, only for testing, delete later
+        //std::cout << std::bitset<8>(public_key[i]) << "\n";
+    }
+    std::cout << std::endl;
+    std::cout << "private key:\n";  
+    for(int i = 0; i < 32; i++)
+    {
+        printf("%x",test_private_key[i]); // prints as hex, only for testing, delete later
+        //std::cout << std::bitset<8>(public_key[i]) << "\n";
+    }
+        std::cout << std::endl;
+
+//
     chat_message user_info;
     user_info.encode_key(true);
     
@@ -233,9 +320,9 @@ int main(int argc, char* argv[])
     user_info.encode_usernames(user, temp_empty); // try making it so target user is default ""?
   
     // storing public key in body of message
-    char *public_key = reinterpret_cast<char*>(test_public_key);
-    user_info.body_length(strlen(public_key));
-    memcpy(user_info.body(), public_key, user_info.body_length());
+    char *public_key_char = reinterpret_cast<char*>(test_public_key);
+    user_info.body_length(crypto_box_SEEDBYTES);
+    memcpy(user_info.body(), public_key_char, user_info.body_length());
     
     user_info.encode_header();
 
@@ -267,14 +354,85 @@ int main(int argc, char* argv[])
         std::string username = *it;
         char *target_user = new char[username.length() + 1];
         strcpy(target_user, username.c_str());
+        std::cout << "username sending to:" << username.c_str() << "\n";
         msg.encode_usernames(user, target_user);
+        //
+        // std::cout<< "keylist:\n";
+        // for (auto& t : key_list)
+        // std::cout << t.first << " " 
+        //       << t.second << " " 
+        //       "\n";
 
+        //
+        ///std::cout << "size of key_list: " << key_list.size() << std::endl;
+        //std::cout << "at aaa\n:" << key_list.at("aaa")<< std::endl;
+        auto pk_it = key_list.find(username);
+        unsigned char* public_key = pk_it->second;
+        
+
+      //std::cout << public_key;
+      
         // encrypt message here
-        msg.body_length(strlen(line));
-        memcpy(msg.body(), line, msg.body_length());
+        //unsigned char nonce[] = "1";
+        ///////////const char* thing = reinterpret_cast<const char*>(line);
+        //char encrypted_msg = encrypt_message(test_private_key,public_key,thing,);
+
+/////
+  // //std::cout<<"Message to be encrypted: " << message << " | Length: " << message.length() << " | C.str(): "<< message_p << std::endl;
+
+  //const char* encryptedMessage = encrypt_message(test_private_key, test_public_key, message_point, nonceGen);
+ 
+
+  //   // Decrypt the message
+  //   const char* decryptedMessage = decrypt_message(test_private_key, test_public_key, encryptedMessage);
+    
+  //     std::cout << "Decrypted Message: " << decryptedMessage << std::endl;
+
+  //     // Remember to free the allocated memory
+  //     free(const_cast<char*>(encryptedMessage));  // Free the memory allocated by strdup
+  //     free(const_cast<char*>(decryptedMessage));  // Free the memory allocated by strdup
+  
+    //const char* encrypted_msg = encrypt_message(test_private_key,public_key,line,nonceGen);
+    //const char* testline = "heyoooo";
+    
+        std::cout << "public key sending to:\n";  
+    for(int i = 0; i < 32; i++)
+    {
+        printf("%x",public_key[i]); // prints as hex, only for testing, delete later
+        //std::cout << std::bitset<8>(public_key[i]) << "\n";
+    }
+    std::cout << endl;
+  const char* encrypted_msg = encrypt_message(test_private_key,public_key,line,nonceGen);
+  //const char* decryptedMessage = decrypt_message(test_private_key, test_public_key, encrypted_msg);
+    std::cout << "encrypted msg length: " << strlen(encrypted_msg) << std::endl;
+    
+    std::cout << "encrypted msg:" << std::endl;
+const unsigned char* unsigned_encrypted = reinterpret_cast<const unsigned char*>(encrypted_msg);
+    for(int i = 0; i < strlen(encrypted_msg); i++)
+    {
+        printf("%x",unsigned_encrypted[i]); // prints as hex, only for testing, delete later
+        //std::cout << std::bitset<8>(public_key[i]) << "\n";
+    }
+    std::cout << endl;
+  //std::cout << "decrypted message:" << decryptedMessage;
+
+/////
+
+        //msg.body_length(strlen(line));
+        //memcpy(msg.body(), line, msg.body_length());
+
+        msg.body_length(strlen(encrypted_msg));
+            // for(int i = 0; i < strlen(encrypted_msg); i++)
+    // {
+    //     printf("%x",encrypted_msg[i]); // prints as hex, only for testing, delete later
+    //     //std::cout << std::bitset<6>(public_key[i]) << "\n";
+    // }
+        memcpy(msg.body(), &encrypted_msg, msg.body_length());
 
         msg.encode_header();
         c.write(msg);
+
+        free(const_cast<char*>(encrypted_msg));  // Free the memory allocated by strdup
       }
       
     }

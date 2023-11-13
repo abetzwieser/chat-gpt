@@ -5,9 +5,7 @@
 #include <stdlib.h>
 #include <vector>
 #include <iomanip>
-#include <vector>
-#include <nonce.h>
-
+#include "crypto.hpp"
 //note: salt is not a "secret", save the salt somewhere.
 // like in text document or whatever
 
@@ -24,10 +22,10 @@ unsigned char salt[] = {"this is salt"};
 #define PASSWORD "password" // remove this line later
 //
 SequentialNonce::SequentialNonce() : counter(0) {
-    if (sodium_init() < 0) {
-        std::cerr << "libsodium failed to initialize" << std::endl;
-        // Handle initialization failure
-    }
+    // if (sodium_init() < 0) {
+    //     std::cerr << "libsodium failed to initialize" << std::endl;
+    //     // Handle initialization failure
+    // }
 }
 std::string SequentialNonce::getRandomNonce() {
     std::string nonce(crypto_secretbox_NONCEBYTES, 0);
@@ -58,6 +56,46 @@ void generate_keypair(const char* user_password, unsigned char* salt, unsigned c
 }
 
 
+// //takes sender secret key, and receiver public key, encrypts message
+// const char* encrypt_message(unsigned char* sender_privk, unsigned char* rec_pubk, const char* message_or_whatever, SequentialNonce& nonceGen){ 
+
+//   std::string nonce = nonceGen.getRandomNonce();
+//   size_t messageLength = strlen(message_or_whatever);
+//   std::string cipher(nonce + std::string(crypto_box_MACBYTES + messageLength, 0));
+
+//   if (crypto_box_easy(reinterpret_cast<unsigned char*>(cipher.data() + nonce.size()), 
+//     reinterpret_cast<const unsigned char*>(message_or_whatever), 
+//     messageLength, reinterpret_cast<const unsigned char*>(nonce.data()), 
+//     rec_pubk, sender_privk) != 0) {
+
+//     std::cout<<"Encryption failed. Message tampered."<<std::endl;
+//   }
+
+//   return strdup(cipher.c_str());
+// }
+
+// const char* decrypt_message(unsigned char* private_key, const unsigned char* sender_pubk, const char* cipher_with_nonce) {
+//     std::string nonce(cipher_with_nonce, crypto_box_NONCEBYTES);
+//     std::string ciphertext(cipher_with_nonce + crypto_box_NONCEBYTES);
+
+//     // Allocate space for the decrypted message
+//     std::string decrypted(ciphertext.size(), 0);
+
+//     if (crypto_box_open_easy(reinterpret_cast<unsigned char*>(decrypted.data()),
+//                              reinterpret_cast<const unsigned char*>(ciphertext.data()),
+//                              ciphertext.size(),
+//                              reinterpret_cast<const unsigned char*>(nonce.data()),
+//                              sender_pubk,
+//                              private_key) != 0) {
+//         std::cerr << "Decryption failed. Message tampered or invalid key pair." << std::endl;
+//         return nullptr;
+//     }
+
+//     // Remove the padding (crypto_box_MACBYTES)
+//     decrypted.resize(decrypted.size() - crypto_box_MACBYTES);
+
+//     return strdup(decrypted.c_str());
+// }
 //takes sender secret key, and receiver public key, encrypts message
 const char* encrypt_message(unsigned char* sender_privk, unsigned char* rec_pubk, const char* message_or_whatever, SequentialNonce& nonceGen){ 
 
@@ -133,46 +171,46 @@ const char* decrypt_message(unsigned char* private_key, const unsigned char* sen
 
 // return 0;
 // }
-int main(){
-  if (sodium_init() < 0) {
-        std::cerr << "libsodium failed to initialize" << std::endl;
-        return 1;
-    }
+// int main(){
+//   if (sodium_init() < 0) {
+//         std::cerr << "libsodium failed to initialize" << std::endl;
+//         return 1;
+//     }
 
-  SequentialNonce nonceGen;
+//   SequentialNonce nonceGen;
   
-  unsigned char test_public_key[crypto_box_SEEDBYTES];
-  unsigned char test_private_key[crypto_box_SEEDBYTES];
-  std::string test_password;
-  unsigned char test_salt[] = "test";
+//   unsigned char test_public_key[crypto_box_SEEDBYTES];
+//   unsigned char test_private_key[crypto_box_SEEDBYTES];
+//   std::string test_password;
+//   unsigned char test_salt[] = "test";
 
-  //key gen
-  std::cout << "Please enter your password" << std::endl;
-  std::getline(std::cin, test_password);
-  const char* pw_point = test_password.c_str();
-  generate_keypair(pw_point, test_salt, test_public_key, test_private_key);
-  std::string message;
+//   //key gen
+//   std::cout << "Please enter your password" << std::endl;
+//   std::getline(std::cin, test_password);
+//   const char* pw_point = test_password.c_str();
+//   generate_keypair(pw_point, test_salt, test_public_key, test_private_key);
+//   std::string message;
 
-  std::cout<<"Enter a message: "<<std::endl;
+//   std::cout<<"Enter a message: "<<std::endl;
 
-  std::cin >> message;
-  const char* message_point = message.c_str();
-  //std::cout<<"Message to be encrypted: " << message << " | Length: " << message.length() << " | C.str(): "<< message_p << std::endl;
+//   std::cin >> message;
+//   const char* message_point = message.c_str();
+//   //std::cout<<"Message to be encrypted: " << message << " | Length: " << message.length() << " | C.str(): "<< message_p << std::endl;
 
-  const char* encryptedMessage = encrypt_message(test_private_key, test_public_key, message_point, nonceGen);
+//   const char* encryptedMessage = encrypt_message(test_private_key, test_public_key, message_point, nonceGen);
  
-  if (encryptedMessage != nullptr) 
-  {
-    // Decrypt the message
-    const char* decryptedMessage = decrypt_message(test_private_key, test_public_key, encryptedMessage);
-    if (decryptedMessage != nullptr) 
-    {
-      std::cout << "Decrypted Message: " << decryptedMessage << std::endl;
+//   if (encryptedMessage != nullptr) 
+//   {
+//     // Decrypt the message
+//     const char* decryptedMessage = decrypt_message(test_private_key, test_public_key, encryptedMessage);
+//     if (decryptedMessage != nullptr) 
+//     {
+//       std::cout << "Decrypted Message: " << decryptedMessage << std::endl;
 
-      // Remember to free the allocated memory
-      free(const_cast<char*>(encryptedMessage));  // Free the memory allocated by strdup
-      free(const_cast<char*>(decryptedMessage));  // Free the memory allocated by strdup
-    }
-  }
-  return 0;   
-}
+//       // Remember to free the allocated memory
+//       free(const_cast<char*>(encryptedMessage));  // Free the memory allocated by strdup
+//       free(const_cast<char*>(decryptedMessage));  // Free the memory allocated by strdup
+//     }
+//   }
+//   return 0;   
+// }
