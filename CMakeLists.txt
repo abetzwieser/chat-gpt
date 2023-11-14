@@ -22,7 +22,7 @@ add_executable(client ${CLIENT_SOURCES})
 add_executable(server ${SERVER_SOURCES})
 
 target_link_libraries(client pthread sodium)
-target_link_libraries(server pthread)
+target_link_libraries(server pthread sodium)
 
 set_target_properties(client PROPERTIES CXX_STANDARD 20)
 set_target_properties(server PROPERTIES CXX_STANDARD 20)
