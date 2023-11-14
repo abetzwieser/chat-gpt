@@ -27,6 +27,18 @@
 #include <sodium.h>
 
 #define KEY_LEN crypto_box_SEEDBYTES
+#include <memory>  // for allocator, __shared_ptr_access
+#include <string>  // for char_traits, operator+, string, basic_string
+ 
+#include "ftxui/component/captured_mouse.hpp"  // for ftxui
+#include "ftxui/component/component.hpp"       // for Input, Renderer, Vertical
+#include "ftxui/component/component_base.hpp"  // for ComponentBase
+#include "ftxui/component/component_options.hpp"  // for InputOption
+#include "ftxui/component/screen_interactive.hpp"  // for Component, ScreenInteractive
+#include "ftxui/dom/elements.hpp"  // for text, hbox, separator, Element, operator|, vbox, border
+#include "ftxui/util/ref.hpp"  // for Ref
+#include <ftxui/dom/elements.hpp>
+#include <ftxui/screen/screen.hpp>
 
 using asio::ip::tcp;
 
@@ -66,7 +78,7 @@ public:
     for (auto it = key_list_.begin(); it != key_list_.end(); ++it)
     {
       std::string username = it->first;
-      
+
       char *source_user = new char[username.length() + 1];
       strcpy(source_user, username.c_str());
 
@@ -74,10 +86,10 @@ public:
       msg.encode_key(true);
   
       msg.encode_usernames(source_user, target_user);
-      
+       
       delete[] source_user; // must delete after new
       source_user = nullptr;
-
+      
       std::string str_key = it->second;
       //char *key = new char[str_key.length() + 1];
       //strcpy(key, str_key.c_str());
@@ -116,7 +128,7 @@ public:
   {
     if (msg.has_key()) // if message contains public key, send to all connected clients
     {
-      //key_list_.insert({msg.source_username(), msg.body()}); // add key to map of key/client pairs
+    //key_list_.insert({msg.source_username(), msg.body()}); // add key to map of key/client pairs
 
       std::string hardcoded_string(msg.body(), 32);
       key_list_.insert({msg.source_username(), hardcoded_string}); // add key to map of key/client pairs
@@ -213,6 +225,7 @@ public:
   // handles what to do after the rest of message (not header) is read into buffer
   void handle_read_message(const asio::error_code& error)
   {
+    using namespace ftxui;
     if (!error)
     {
       read_msg_.decode_key();
@@ -226,7 +239,18 @@ public:
         set_user(read_msg_.source_username()); // set username of this client connection
 
         room_.add_user(user_, shared_from_this()); // add association between client pointer & username in chat room's list
-        std::cout << "User: " << user_ << " has connected." << std::endl;
+        //std::cout << "User: " << user_ << " has connected." << std::endl;
+        std::string user_text = user_;
+        Element document =
+          hbox({
+            text(" User: " + user_text + " has connected. ")  | border,
+          });
+        auto screen2 = Screen::Create(
+        Dimension::Full(),       // Width
+        Dimension::Fit(document) // Height
+        );
+        Render(screen2, document);
+        screen2.Print();
       }
     
       room_.deliver(read_msg_); // has chat room figure out where to deliver message
@@ -330,6 +354,9 @@ int main(int argc, char* argv[])
   std::cerr << "libsodium failed to initialize" << std::endl;
   // Handle initialization failure
   }
+  system("clear");
+   std::cout << "Chat Room Created!" << std::endl;
+  using namespace ftxui;
   try
   {
     if (argc < 2)
@@ -355,6 +382,6 @@ int main(int argc, char* argv[])
   {
     std::cerr << "Exception: " << e.what() << "\n";
   }
-
+  
   return 0;
 }
