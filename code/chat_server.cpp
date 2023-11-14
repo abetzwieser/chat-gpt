@@ -24,6 +24,9 @@
 #include <boost/enable_shared_from_this.hpp>
 #include "asio.hpp"
 #include "chat_message.hpp"
+#include <sodium.h>
+
+#define KEY_LEN crypto_box_SEEDBYTES
 
 using asio::ip::tcp;
 
@@ -63,7 +66,7 @@ public:
     for (auto it = key_list_.begin(); it != key_list_.end(); ++it)
     {
       std::string username = it->first;
-
+      
       char *source_user = new char[username.length() + 1];
       strcpy(source_user, username.c_str());
 
@@ -72,11 +75,16 @@ public:
   
       msg.encode_usernames(source_user, target_user);
       
+      delete[] source_user; // must delete after new
+      source_user = nullptr;
+
       std::string str_key = it->second;
-      char *key = new char[str_key.length() + 1];
-      strcpy(key, str_key.c_str());
-      msg.body_length(strlen(key));
-      memcpy(msg.body(), key, msg.body_length());
+      //char *key = new char[str_key.length() + 1];
+      //strcpy(key, str_key.c_str());
+      msg.body_length(KEY_LEN);
+      std::copy(str_key.begin(), str_key.end(), msg.body());
+
+      //memcpy(msg.body(), key, msg.body_length());
       
       msg.encode_header();
 
@@ -108,7 +116,10 @@ public:
   {
     if (msg.has_key()) // if message contains public key, send to all connected clients
     {
-      key_list_.insert({msg.source_username(), msg.body()}); // add key to map of key/client pairs
+      //key_list_.insert({msg.source_username(), msg.body()}); // add key to map of key/client pairs
+
+      std::string hardcoded_string(msg.body(), 32);
+      key_list_.insert({msg.source_username(), hardcoded_string}); // add key to map of key/client pairs
 
       std::for_each(participants_.begin(), participants_.end(),
           boost::bind(&chat_participant::deliver,
@@ -315,6 +326,10 @@ typedef std::list<chat_server_ptr> chat_server_list;
 
 int main(int argc, char* argv[])
 {
+  if (sodium_init() < 0) {
+  std::cerr << "libsodium failed to initialize" << std::endl;
+  // Handle initialization failure
+  }
   try
   {
     if (argc < 2)

@@ -28,9 +28,11 @@ SequentialNonce::SequentialNonce() : counter(0) {
     // }
 }
 std::string SequentialNonce::getRandomNonce() {
-    std::string nonce(crypto_secretbox_NONCEBYTES, 0);
-    randombytes_buf(nonce.data(), nonce.size());
-    return nonce;
+    //std::string nonce(crypto_secretbox_NONCEBYTES, 0);
+    //randombytes_buf(nonce.data(), nonce.size());
+    //return nonce;
+    std::string hi("hello");
+    return hi;
 }
 // optionally one day make a salt-making function:
 //randombytes_buf(salt, sizeof salt); // create unique random salt
@@ -95,11 +97,12 @@ void generate_keypair(const char* user_password, unsigned char* salt, unsigned c
 
 //     return strdup(decrypted.c_str());
 // }
+  std::string nonce = "111100001111000011110000";
 
 std::string encrypt_message(unsigned char* sender_privk, unsigned char* rec_pubk, const char* message_or_whatever, SequentialNonce& nonceGen){ 
 
   //std::string nonce = nonceGen.getRandomNonce();
-  std::string nonce = "111100001111000011110000";
+  //std::string nonce = "111100001111000011110000";
   size_t messageLength = strlen(message_or_whatever);
   unsigned char testcipher[messageLength + crypto_box_MACBYTES];
   //std::string cipher(nonce + std::string(crypto_box_MACBYTES + messageLength, 0));
@@ -119,7 +122,8 @@ std::string encrypt_message(unsigned char* sender_privk, unsigned char* rec_pubk
 
 std::string decrypt_message(unsigned char* private_key, const unsigned char* sender_pubk, const char* cipher_with_nonce, int cipher_size) {
     
-    std::string nonce = "111100001111000011110000";
+    
+    //std::string nonce = "111100001111000011110000";
     std::cout<<"\nnoncelength:\n"<<nonce.length();
     std::cout << std::endl;
     //std::string nonce(cipher_with_nonce, crypto_box_NONCEBYTES);
@@ -128,11 +132,39 @@ std::string decrypt_message(unsigned char* private_key, const unsigned char* sen
     //std::string decrypted(ciphertext.size(), 0);
 
       //std::string decryptedmsg(cipher_size - crypto_box_MACBYTES, 0); //0 out message holder
+
+      
       unsigned char* msgtest = new unsigned char[cipher_size - crypto_box_MACBYTES + 1];
     // unsigned char message[45];
     //std::fill(message, message + 45, 0); // 0 out thing
     std::cout << "\nmsg size:" ;
     std::cout << cipher_size - crypto_box_MACBYTES << std::endl;
+
+
+    /////////
+        std::cout << "\ndecrypt: private key:\n" ;
+              for(int i = 0; i < 32; i++)
+          {
+              printf("%x",private_key[i]); // prints as hex, only for testing, delete later
+              //std::cout << std::bitset<6>(public_key[i]) << "\n";
+          }
+        std::cout << "\n" ;
+        std::cout << "\ndecrypt: sender_pubk:\n" ;
+              for(int i = 0; i < 32; i++)
+          {
+              printf("%x",sender_pubk[i]); // prints as hex, only for testing, delete later
+              //std::cout << std::bitset<6>(public_key[i]) << "\n";
+          }
+        std::cout << "\n" ;
+        
+        std::cout << "\ndecrypt: cipher_with_nonce:\n" ;
+              for(int i = 0; i < cipher_size; i++)
+          {
+              printf("%x",static_cast<unsigned char>(cipher_with_nonce[i])); // prints as hex, only for testing, delete later
+              //std::cout << std::bitset<6>(public_key[i]) << "\n";
+          }
+        std::cout << "\n" ;
+          //////////////
     if (crypto_box_open_easy(msgtest,
                              reinterpret_cast<const unsigned char*>(cipher_with_nonce),
                              cipher_size,
@@ -148,7 +180,10 @@ std::string decrypt_message(unsigned char* private_key, const unsigned char* sen
 
     //return strdup(decrypted.c_str());
       std::string message_out( reinterpret_cast<const char*>(msgtest), cipher_size-crypto_box_MACBYTES);
+      delete[] msgtest;
+      msgtest = nullptr;
       return message_out;
+      
 }
 // int main()
 // {
