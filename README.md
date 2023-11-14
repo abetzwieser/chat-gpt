@@ -12,14 +12,7 @@ https://doc.libsodium.org/
 ////
 # what you have to do to make this run:
 
-cd ./packages/libsodium-stable
-./configure
-make && make check
-sudo make install
-cd ..
-cd ..
-sudo apt-get update
-sudo apt-get install libasio-dev
+source set_up_commands.txt
 
 //
 cmake --build ./build
