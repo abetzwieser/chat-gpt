@@ -60,8 +60,16 @@ typedef boost::shared_ptr<chat_participant> chat_participant_ptr;
 //----------------------------------------------------------------------
 
 class chat_room // collects & organizes client connections, aka chat_participant_ptr's
+                // implemented as a Singleton, as only one chat_room should be in a server
 {
 public:
+  // returns a pointer to the chat_room singleton
+  static chat_room& get() 
+  {
+    static chat_room instance;
+    return instance;
+  }
+
   void join(chat_participant_ptr participant)
   {
     participants_.insert(participant);
@@ -156,6 +164,10 @@ public:
   }
 
 private:
+  // private-only constructor
+  chat_room() = default;
+  // destructor
+  ~chat_room() = default;
   std::set<chat_participant_ptr> participants_;
   std::map<std::string, chat_participant_ptr> users_;
   std::map<std::string, std::string> key_list_;
@@ -168,9 +180,8 @@ class chat_session // represents a client connection
     public boost::enable_shared_from_this<chat_session>
 {
 public:
-  chat_session(asio::io_context& io_context, chat_room& room)
-    : socket_(io_context),
-      room_(room)
+  chat_session(asio::io_context& io_context)
+    : socket_(io_context)
   {
   }
 
@@ -181,7 +192,7 @@ public:
 
   void start()
   {
-    room_.join(shared_from_this()); // join chat_room instance associated with the running server
+    chat_room::get().join(shared_from_this()); // join chat_room instance associated with the running server
     asio::async_read(socket_,
         asio::buffer(read_msg_.data(), chat_message::header_length),
         boost::bind(
@@ -218,7 +229,7 @@ public:
     }
     else
     {
-      room_.leave(shared_from_this());
+      chat_room::get().leave(shared_from_this());
     }
   }
 
@@ -238,7 +249,7 @@ public:
         first_msg_ = false;
         set_user(read_msg_.source_username()); // set username of this client connection
 
-        room_.add_user(user_, shared_from_this()); // add association between client pointer & username in chat room's list
+        chat_room::get().add_user(user_, shared_from_this()); // add association between client pointer & username in chat room's list
         //std::cout << "User: " << user_ << " has connected." << std::endl;
         std::string user_text = user_;
         Element document =
@@ -253,7 +264,7 @@ public:
         screen2.Print();
       }
     
-      room_.deliver(read_msg_); // has chat room figure out where to deliver message
+      chat_room::get().deliver(read_msg_); // has chat room figure out where to deliver message
       asio::async_read(socket_,
           asio::buffer(read_msg_.data(), chat_message::header_length),
           boost::bind(&chat_session::handle_read_header, shared_from_this(),
@@ -261,7 +272,7 @@ public:
     }
     else
     {
-      room_.leave(shared_from_this());
+      chat_room::get().leave(shared_from_this());
     }
   }
 
@@ -283,7 +294,7 @@ public:
     }
     else
     {
-      room_.leave(shared_from_this());
+      chat_room::get().leave(shared_from_this());
     }
   }
 
@@ -294,7 +305,6 @@ public:
   
 private:
   tcp::socket socket_;
-  chat_room& room_;
   chat_message read_msg_;
   chat_message_queue write_msgs_;
   char* user_;
@@ -320,7 +330,7 @@ public:
   {
     // create/accept new client connection
     // & direct to handle_accept
-    chat_session_ptr new_session(new chat_session(io_context_, room_));
+    chat_session_ptr new_session(new chat_session(io_context_));
     acceptor_.async_accept(new_session->socket(),
         boost::bind(&chat_server::handle_accept, this, new_session,
           asio::placeholders::error));
@@ -340,7 +350,6 @@ public:
 private:
   asio::io_context& io_context_;
   tcp::acceptor acceptor_;
-  chat_room room_;
 };
 
 typedef boost::shared_ptr<chat_server> chat_server_ptr;
@@ -354,8 +363,8 @@ int main(int argc, char* argv[])
   std::cerr << "libsodium failed to initialize" << std::endl;
   // Handle initialization failure
   }
-  system("clear");
-   std::cout << "Chat Room Created!" << std::endl;
+  if(system("clear"));  // if() to silence system return value warning
+  std::cout << "Chat Room Created!" << std::endl;
   using namespace ftxui;
   try
   {
