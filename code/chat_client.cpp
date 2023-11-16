@@ -44,6 +44,15 @@ using namespace ftxui;
 
 typedef std::deque<chat_message> chat_message_queue;
 
+void debug_print_hex(std::string text, const char* preamble){
+  std::cout<< "** "<< preamble << ": **\n";
+for(int i = 0; i < text.length(); i++)
+{
+    printf("%x",static_cast<unsigned char>(text[i]));
+}
+  std::cout<<"\n";
+}
+
 class chat_client
 {
 public:
@@ -99,6 +108,16 @@ public:
   void initialize()
   {
     initialized = 1;
+  }
+
+  void enable_debug()
+  {
+  DEBUG = 1;
+  }
+
+  int check_debug()
+  {
+    return DEBUG;
   }
 
 private:
@@ -159,6 +178,13 @@ private:
                         
             std::string hardcoded_string(read_msg_.body(), 32);
             key_list_.insert({read_msg_.source_username(), hardcoded_string});
+            if (check_debug() == 1){
+            std::stringstream ss;
+            ss << "public key from user: " << read_msg_.source_username();
+            std::string result = ss.str();
+            debug_print_hex((hardcoded_string), result.c_str());
+            }
+
 
           }
         }
@@ -173,9 +199,14 @@ private:
 
 
           std::string decrypted_msg = decrypt_message(private_key, sender_pub_key.data(), read_msg_.body(), read_msg_.body_length());
-
+          
+          std::string user_text = read_msg_.source_username();
+          if (check_debug() == 1){
+            std::string preamble = "encrypted message received from " + user_text;
+          debug_print_hex(std::string(reinterpret_cast<char*>(read_msg_.body()), read_msg_.body_length()), preamble.c_str());
+          }
           // ftxui
-                std::string user_text = read_msg_.source_username();
+                
                 Element document2 =
                 hbox({
                   text(user_text + ": " + decrypted_msg.data())   | color(Color::BlueLight)   , text(" ") 
@@ -240,6 +271,7 @@ private:
     socket_.close();
   }
 
+
 private:
   asio::io_context& io_context_;
   tcp::socket socket_;
@@ -249,7 +281,9 @@ private:
   char my_username[chat_message::username_length] = "";
   unsigned char private_key[KEY_LEN];
   int initialized = 0;
+  int DEBUG = 0;
 };
+
 
 int main(int argc, char* argv[])
 {
@@ -261,9 +295,10 @@ int main(int argc, char* argv[])
   system("clear");
   try
   {
-    if (argc != 3)
+    //if (argc < 2 || argc > 3)
+    if (argc <3)
     {
-      std::cerr << "Usage: client <host> <port>\n";
+      std::cerr << "Usage: client <host ip> <port>\n";
       return 1;
     }
     asio::io_context io_context;
@@ -275,6 +310,22 @@ int main(int argc, char* argv[])
 
     asio::thread t(boost::bind(&asio::io_context::run, &io_context));
     
+    if (argc == 4){
+    if(strcmp(argv[3], "debug") == 0 ||strcmp(argv[3], "DEBUG") == 0 ){
+      c.enable_debug();
+          Element documentDEBUG =
+          hbox({
+            text("DEBUG ENABLED")   | bgcolor(Color::Red3Bis) | color(Color::White)   , text(" ") 
+          });
+          auto screenDEBUG = Screen::Create(
+            Dimension::Full(),       // Width
+            Dimension::Fit(documentDEBUG) // Height
+          );
+          Render(screenDEBUG, documentDEBUG);
+          screenDEBUG.Print();
+    }}
+
+
 
     // this can probably be condensed, right? it doesn't need to be how it is.
     char user[chat_message::username_length + 1] = "";
@@ -322,6 +373,10 @@ int main(int argc, char* argv[])
     unsigned char* username_ptr = reinterpret_cast<unsigned char*>(user);
     generate_keypair(test_password.c_str(), username_ptr, test_public_key, test_private_key);
     c.set_private_key(test_private_key); 
+    if(c.check_debug() == 1){
+      debug_print_hex(std::string(reinterpret_cast<char*>(test_public_key), KEY_LEN), "public key" );
+      debug_print_hex(std::string(reinterpret_cast<char*>(test_private_key), KEY_LEN), "private key" );
+    }
     c.initialize();
 
 
@@ -378,7 +433,10 @@ int main(int argc, char* argv[])
 
 
         std::string encrypted_msg = encrypt_message(test_private_key,recipient_public_key.data(),line);
-
+          if (c.check_debug() == 1){
+            std::string preamble = "encrypted message sent to " + username;
+          debug_print_hex(encrypted_msg, preamble.c_str());
+          }
 
         msg.body_length(encrypted_msg.length());
 

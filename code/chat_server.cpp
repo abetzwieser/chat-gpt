@@ -8,10 +8,11 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-// run these commands to install asio library:
-// sudo apt-get update
-// sudo apt-get install libasio-dev
-// to build: g++ chat_server.cpp -o chat_server -L /usr/lib/ -pthread
+// setup:
+// source set_up_commands.txt
+
+// build with cmake --build ./build
+// run with ./build/server localhost 1225
 
 #include <algorithm>
 #include <cstdlib>
@@ -102,13 +103,10 @@ public:
       source_user = nullptr;
       
       std::string str_key = it->second;
-      //char *key = new char[str_key.length() + 1];
-      //strcpy(key, str_key.c_str());
+
       msg.body_length(KEY_LEN);
       std::copy(str_key.begin(), str_key.end(), msg.body());
 
-      //memcpy(msg.body(), key, msg.body_length());
-      
       msg.encode_header();
 
       // edit later? temp solution
@@ -121,8 +119,7 @@ public:
         std::for_each(temp.begin(), temp.end(),
         boost::bind(&chat_participant::deliver,
           boost::placeholders::_1, boost::ref(msg)));
-          // boost::bind(&chat_participant::deliver, &user_,
-          //   boost::placeholders::_1, boost::ref(msg));
+
       }
       
     }
@@ -139,8 +136,6 @@ public:
   {
     if (msg.has_key()) // if message contains public key, send to all connected clients
     {
-    //key_list_.insert({msg.source_username(), msg.body()}); // add key to map of key/client pairs
-
       std::string hardcoded_string(msg.body(), 32);
       key_list_.insert({msg.source_username(), hardcoded_string}); // add key to map of key/client pairs
       userData = addUser(userData, hardcoded_string, msg.source_username());
@@ -161,8 +156,7 @@ public:
         std::for_each(temp.begin(), temp.end(),
         boost::bind(&chat_participant::deliver,
           boost::placeholders::_1, boost::ref(msg)));
-        // boost::bind(&chat_participant::deliver, &user_,
-        //   boost::placeholders::_1, boost::ref(msg));
+
       }
     }
   }
@@ -369,7 +363,6 @@ int main(int argc, char* argv[])
   // Handle initialization failure
   }
   if(system("clear"));  // if() to silence system return value warning
-  std::cout << "Chat Room Created!" << std::endl;
   using namespace ftxui;
   try
   {
@@ -378,6 +371,7 @@ int main(int argc, char* argv[])
       std::cerr << "Usage: server <port> [<port> ...]\n";
       return 1;
     }
+  std::cout << "Chat room created! Listening on port: " << argv[1] << std::endl;
 
     asio::io_context io_context;
 
