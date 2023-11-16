@@ -30,6 +30,8 @@ set(CLIENT_SOURCES
 set(SERVER_SOURCES 
    code/chat_server.cpp
    code/chat_message.hpp
+   code/JsonManagment.cpp
+   code/jsonManagment.hpp
 )
 find_package(Boost)
 find_package(Sodium)
