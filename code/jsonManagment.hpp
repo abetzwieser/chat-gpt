@@ -1,16 +1,14 @@
 #pragma once
-
-#include "crypto.hpp"  
 #include "json.hpp"
-
 using json = nlohmann::json;
 
-void addUser(json& data, const std::string& name, const std::string& username, unsigned char* privateKey);
 
-std::string getPublicKey(const json& data, const std::string& username);
+bool is_utf8(const std::string& str);
 
-json getUser(const json& data, const std::string& publicKey);
+std::string charToHexString( std::string input);
 
-std::string getUsername(const json& data, const std::string& publicKey);
+std::string encode(const std::string& input);
 
-void deleteUser(json& data, const std::string& publicKey);
+json addUser(json& data, std::string publicKey, std::string username);
+
+std::string getPublicKey(json& data, std::string username);
