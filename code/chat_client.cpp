@@ -24,11 +24,23 @@
 #include <sodium.h>
 #include <bitset>
 
+#include "ftxui/component/event.hpp"
+#include "ftxui/component/loop.hpp"
+#include "ftxui/component/captured_mouse.hpp"  // for ftxui
+#include "ftxui/component/component.hpp"       // for Input, Renderer, Vertical
+#include "ftxui/component/component_base.hpp"  // for ComponentBase
+#include "ftxui/component/component_options.hpp"  // for InputOption
+#include "ftxui/component/screen_interactive.hpp"  // for Component, ScreenInteractive
+#include "ftxui/dom/elements.hpp"  // for text, hbox, separator, Element, operator|, vbox, border
+#include "ftxui/util/ref.hpp"  // for Ref
+#include "ftxui/screen/color.hpp"  // for Color, Color::Blue, ftxui
+
 //#include "nonce.hpp"
 #define KEY_LEN crypto_box_SEEDBYTES
 
 
 using asio::ip::tcp;
+using namespace ftxui;
 
 typedef std::deque<chat_message> chat_message_queue;
 
@@ -127,8 +139,21 @@ private:
         read_msg_.decode_usernames();
         if (read_msg_.has_key())
         {
-          std::cout << "User " << read_msg_.source_username() << " is connected." << std::endl;
+          //std::cout << "User " << read_msg_.source_username() << " is connected." << std::endl;
+          // ftxui print
+            std::string user_text = read_msg_.source_username();
+            Element document =
+            hbox({
+              text(" User: " + user_text + " is connected. ")   | border | color(Color::Blue)   , text(" ") 
+            });
+            auto screen = Screen::Create(
+              Dimension::Full(),       // Width
+              Dimension::Fit(document) // Height
+            );
+            Render(screen, document);
+            screen.Print();
           // prevent own key from going into storage -- we already know our own key
+
           if((strcmp(read_msg_.source_username(), get_my_username()) != 0))
           {
                         
@@ -147,12 +172,21 @@ private:
           std::copy(str_key.begin(), str_key.end(), sender_pub_key.begin());
 
 
-              std::string decrypted_msg = decrypt_message(private_key, sender_pub_key.data(), read_msg_.body(), read_msg_.body_length());
+          std::string decrypted_msg = decrypt_message(private_key, sender_pub_key.data(), read_msg_.body(), read_msg_.body_length());
 
-              std::cout << read_msg_.source_username() << ": ";
-              std::cout.write(decrypted_msg.data(), decrypted_msg.size());
-              std::cout << "\n";
-
+          // ftxui
+                std::string user_text = read_msg_.source_username();
+                Element document2 =
+                hbox({
+                  text(user_text + ": " + decrypted_msg.data())   | color(Color::BlueLight)   , text(" ") 
+                });
+                auto screen2 = Screen::Create(
+                  Dimension::Full(),       // Width
+                  Dimension::Fit(document2) // Height
+                );
+                Render(screen2, document2);
+                screen2.Print();
+                std::cout << "\n";
         } 
       }
 
@@ -224,6 +258,7 @@ int main(int argc, char* argv[])
     // Handle initialization failure
     // or don't. i'm a comment not a cop.
   }
+  system("clear");
   try
   {
     if (argc != 3)
@@ -243,7 +278,18 @@ int main(int argc, char* argv[])
 
     // this can probably be condensed, right? it doesn't need to be how it is.
     char user[chat_message::username_length + 1] = "";
-    std::cout << "What is your username? (max of 16 characters)" << std::endl;
+    // ftxui
+          Element document3 =
+          hbox({
+            text("What is your username? (max of 16 characters)")   | underlined | color(Color::BlueLight)   , text(" ") 
+          });
+          auto screen3 = Screen::Create(
+            Dimension::Full(),       // Width
+            Dimension::Fit(document3) // Height
+          );
+          Render(screen3, document3);
+          screen3.Print();
+
     std::cin.getline(user, chat_message::username_length + 1);
 
     char myname[chat_message::username_length + 1] = "";
@@ -261,7 +307,17 @@ int main(int argc, char* argv[])
     unsigned char test_private_key[KEY_LEN];
 
     std::string test_password;
-    std::cout << "Please enter your password:" << std::endl;
+    // ftxui
+          Element document4 =
+          hbox({
+            text("Please enter your password:")   | underlined | color(Color::BlueLight)   , text(" ") 
+          });
+          auto screen4 = Screen::Create(
+            Dimension::Full(),       // Width
+            Dimension::Fit(document4) // Height
+          );
+          Render(screen4, document4);
+          screen4.Print();
     std::cin >> test_password;
     unsigned char* username_ptr = reinterpret_cast<unsigned char*>(user);
     generate_keypair(test_password.c_str(), username_ptr, test_public_key, test_private_key);
