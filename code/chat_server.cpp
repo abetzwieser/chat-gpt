@@ -19,6 +19,8 @@
 #include <iostream>
 #include <list>
 #include <set>
+#include "jsonManagment.hpp"
+#include "json.hpp"
 #include <boost/bind/bind.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>
@@ -41,6 +43,7 @@
 #include <ftxui/screen/screen.hpp>
 
 using asio::ip::tcp;
+using json = nlohmann::json;
 
 //----------------------------------------------------------------------
 
@@ -140,6 +143,7 @@ public:
 
       std::string hardcoded_string(msg.body(), 32);
       key_list_.insert({msg.source_username(), hardcoded_string}); // add key to map of key/client pairs
+      userData = addUser(userData, hardcoded_string, msg.source_username());
 
       std::for_each(participants_.begin(), participants_.end(),
           boost::bind(&chat_participant::deliver,
@@ -171,6 +175,7 @@ private:
   std::set<chat_participant_ptr> participants_;
   std::map<std::string, chat_participant_ptr> users_;
   std::map<std::string, std::string> key_list_;
+  json userData;
 };
 
 //----------------------------------------------------------------------
